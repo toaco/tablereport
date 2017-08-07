@@ -7,9 +7,29 @@ from openpyxl import Workbook
 from tablereport import *
 
 
-def test_column_selector_select_right_area_in_top_area():
-    top_area = Table(body=[[1, 2, 3, ], [4, 5, 6], [7, 8, 9]])
-    area = Area(top_area, 3, 3, (0, 0))
+def test_table_initialize():
+    table = Table(
+        headers=[['test', None, None], ['header1', 'header2', 'header3']],
+        body=[[1, 2, 3], [4, 5, 6], [7, 8, 9]]
+    )
+
+    assert table.width == 3
+    assert table.height == 5
+    assert table.position == (0, 0)
+
+
+def test_initialize_table_with_empty_headers_and_empty_body():
+    table = Table(headers=[],
+                  body=[])
+
+    assert table.width == 0
+    assert table.height == 0
+    assert table.position == (0, 0)
+
+
+def test_column_selector_select_right_area_of_area():
+    table = Table(body=[[1, 2, 3, ], [4, 5, 6], [7, 8, 9]])
+    area = Area(table, 3, 3, (0, 0))
     sub_area = area.select(ColumnSelector(column=2, group=False)).one()
 
     assert sub_area.height == 3
@@ -17,17 +37,7 @@ def test_column_selector_select_right_area_in_top_area():
     assert sub_area.position == (0, 1)
 
 
-def test_table():
-    table = Table(
-        headers=[['test', None, None], ['header1', 'header2', 'header3']],
-        body=[[1, 2, 3], [4, 5, 6], [7, 8, 9]])
-
-    assert table.width == 3
-    assert table.height == 5
-    assert table.position == (0, 0)
-
-
-def test_column_selector_select_right_area_in_table():
+def test_column_selector_select_right_area_of_table():
     table = Table(headers=[['header1', 'header2', 'header3']],
                   body=[[1, 2, 3], [4, 5, 6], [7, 8, 9]])
     sub_area = table.select(ColumnSelector(column=2, group=False)).one()
@@ -37,7 +47,8 @@ def test_column_selector_select_right_area_in_table():
     assert sub_area.position == (1, 1)
 
 
-def test_values_in_area_selected_by_column_selector():
+def test_values_in_area_of_table_selected_by_column_selector():
+    # test_values_in_area_of_table_selected_by_column_selector
     table = Table(headers=[['header1', 'header2', 'header3']],
                   body=[[1, 2, 3], [4, 5, 6], [7, 8, 9]])
     area = table.select(ColumnSelector(column=2, group=False)).one()
@@ -45,7 +56,7 @@ def test_values_in_area_selected_by_column_selector():
     assert area.data == [[2], [5], [8]]
 
 
-def test_group_by_column_selector():
+def test_column_selector_could_group_selected_areas():
     table = Table(headers=[['header1', 'header2', 'header3']],
                   body=[[1, 2, 3], [1, 2, 4], [1, 3, 5], [2, 3, 4]])
     areas = table.select(ColumnSelector(column=1, group=True))
@@ -61,7 +72,7 @@ def test_group_by_column_selector():
     assert areas[1].position == (4, 0)
 
 
-def test_modify_area_will_modify_table():
+def test_modify_area_is_equivalent_to_modify_table():
     table = Table(headers=[['header1', 'header2', 'header3']],
                   body=[[1, 2, 3], [4, 5, 6], [7, 8, 9]])
     area = table.select(ColumnSelector(column=2, group=False)).one()
@@ -74,7 +85,7 @@ def test_modify_area_will_modify_table():
     assert area.data == [[3], [6], [9]]
 
 
-def test_areas():
+def test_areas_is_list_like_object():
     areas = Areas()
     areas.append(1)
     areas.append(2)
@@ -133,26 +144,7 @@ def test_merge_areas_2():
                           [None, 4, 5]]
 
 
-def test_make_total_with_located_at_left_side_modify_areas():
-    table = Table(headers=[['header1', 'header2', 'header3']],
-                  body=[[1, 2, 3], [1, 2, 4], [1, 3, 5], [2, 3, 4], [2, 4, 5]])
-    areas = table.select(ColumnSelector(column=1, group=True))
-    areas.merge_all()
-
-    areas.add_summary_of_all(text_span=1, text='total', location='left')
-
-    area1 = areas[0]
-    assert area1.width == 1
-    assert area1.height == 4
-    assert area1.position == (1, 0)
-
-    area2 = areas[1]
-    assert area2.width == 1
-    assert area2.height == 3
-    assert area2.position == (5, 0)
-
-
-def test_make_total_with_located_at_left_side_modify_data():
+def test_add_summary_at_left_side_will_modify_table():
     table = Table(headers=[['header1', 'header2', 'header3']],
                   body=[[1, 2, 3], [1, 2, 4], [1, 3, 5], [2, 3, 4], [2, 4, 5]])
     areas = table.select(ColumnSelector(column=1, group=True))
@@ -166,7 +158,7 @@ def test_make_total_with_located_at_left_side_modify_data():
                           [2, 3, 4], [None, 4, 5], [None, 'total', 9]]
 
 
-def test_make_total_with_located_at_down_side_modify_areas():
+def test_add_summary_at_left_side_will_modify_areas():
     table = Table(headers=[['header1', 'header2', 'header3']],
                   body=[[1, 2, 3], [1, 2, 4], [1, 3, 5], [2, 3, 4], [2, 4, 5]])
     areas = table.select(ColumnSelector(column=1, group=True))
@@ -185,7 +177,7 @@ def test_make_total_with_located_at_down_side_modify_areas():
     assert area2.position == (5, 0)
 
 
-def test_make_total_with_located_at_down_side_modify_data():
+def test_add_summary_below_will_modify_table():
     table = Table(headers=[['header1', 'header2', 'header3']],
                   body=[[1, 2, 3], [1, 2, 4], [1, 3, 5], [2, 3, 4], [2, 4, 5]])
     areas = table.select(ColumnSelector(column=1, group=True))
@@ -199,7 +191,7 @@ def test_make_total_with_located_at_down_side_modify_data():
                           [2, 3, 4], [None, 4, 5], ['total', None, 9]]
 
 
-def test_make_total_with_located_at_down_side_modify_table():
+def test_add_summary_only_below_entire_table_will_modify_area():
     table = Table(headers=[['header1', 'header2', 'header3']],
                   body=[[1, 2, 3], [1, 2, 4], [1, 3, 5], [2, 3, 4], [2, 4, 5]])
     area = Area(table, 3, 5, (1, 0))
@@ -210,7 +202,7 @@ def test_make_total_with_located_at_down_side_modify_table():
     assert area.position == (1, 0)
 
 
-def test_make_total_with_located_at_down_side_modify_table_data():
+def test_add_summary_only_below_entire_table_will_modify_table():
     table = Table(headers=[['header1', 'header2', 'header3']],
                   body=[[1, 2, 3], [1, 2, 4], [1, 3, 5], [2, 3, 4], [2, 4, 5]])
     area = Area(table, 3, 5, (1, 0))
@@ -220,7 +212,7 @@ def test_make_total_with_located_at_down_side_modify_table_data():
                          ['total', None, 21]]
 
 
-def test_nested_make_total_modify_data():
+def test_add_nested_summary_will_modify_table():
     table = Table(headers=[['header1', 'header2', 'header3']],
                   body=[[1, 2, 3], [1, 2, 4], [1, 3, 5], [2, 3, 4], [2, 4, 5]])
 
@@ -238,15 +230,31 @@ def test_nested_make_total_modify_data():
                           ['total', None, 21]]
 
 
-def test_simple_cell():
-    top_area = Table(body=[[1, 2, ], [4, 5, ]])
+def test_each_elem_in_table_is_encapsulated_as_cell():
+    table = Table(body=[[1, 2, ], [4, 5, ]])
 
+    assert table.data[0][0] == Cell(1)
+    assert table.data[0][1] == Cell(2)
+    assert table.data[1][0] == Cell(4)
+    assert table.data[1][1] == Cell(5)
+
+
+def test_set_cell_width_when_initialize_table():
+    table = Table(headers=[['test', None], ['header1', 'header2']],
+                  body=[[1, 2], ])
+    assert list(table) == [[Cell('test', width=2), None],
+                           [Cell('header1'), Cell('header2')],
+                           [Cell(1), Cell(2)]]
+
+
+def test_iter_table_will_get_cell_list():
+    table = Table(body=[[1, 2, ], [4, 5, ]])
     cells = [[Cell(1), Cell(2)], [Cell(4), Cell(5)]]
 
-    assert cells == list(top_area)
+    assert cells == list(table)
 
 
-def test_merged_cell():
+def test_merge_area_will_modify_cell():
     table = Table(headers=[['header1', 'header2']],
                   body=[[1, 2], [1, 3], [2, 3]])
     areas = table.select(ColumnSelector(column=1, group=True))
@@ -258,7 +266,74 @@ def test_merged_cell():
     assert cells == list(table)
 
 
-def test_nested_make_total_modify_data_cells():
+def test_merge_areas_of_three_columns():
+    table = Table(headers=[['header1', 'header2', 'header3', 'header4']],
+                  body=[[1, 2, 3, 4], [1, 2, 3, 5], [1, 2, 3, 6]])
+    areas = table.select(ColumnSelector(column=1, group=True))
+    areas.merge_all()
+
+    areas = table.select(ColumnSelector(column=2, group=True))
+    areas.merge_all()
+
+    areas = table.select(ColumnSelector(column=3, group=True))
+    areas.merge_all()
+
+    cells = [
+        [Cell('header1'), Cell('header2'), Cell('header3'), Cell('header4')],
+        [Cell(1, height=3), Cell(2, height=3), Cell(3, height=3), Cell(4)],
+        [None, None, None, Cell(5)],
+        [None, None, None, Cell(6)]]
+    assert cells == list(table)
+
+
+def test_merge_areas_of_three_columns_2():
+    table = Table(headers=[['header1', 'header2', 'header3', 'header4']],
+                  body=[[1, 2, 3, 5], [1, 2, 3, 9], [1, 2, 33, 6],
+                        [1, 2, 33, 1],
+                        [1, 22, 3, 2], [1, 22, 3, 4], [1, 22, 33, 3],
+                        [1, 22, 33, 2]])
+    areas = table.select(ColumnSelector(column=1, group=True))
+    areas.merge_all()
+
+    areas = table.select(ColumnSelector(column=2, group=True))
+    areas.merge_all()
+
+    areas = table.select(ColumnSelector(column=3, group=True))
+    areas.merge_all()
+
+    cells = [
+        [Cell('header1'), Cell('header2'), Cell('header3'), Cell('header4')],
+        [Cell(1, height=8), Cell(2, height=4), Cell(3, height=2), Cell(5)],
+        [None, None, None, Cell(9)],
+        [None, None, Cell(33, height=2), Cell(6)],
+        [None, None, None, Cell(1)],
+        [None, Cell(22, height=4), Cell(3, height=2), Cell(2)],
+        [None, None, None, Cell(4)],
+        [None, None, Cell(33, height=2), Cell(3)],
+        [None, None, None, Cell(2)]]
+    assert cells == list(table)
+
+
+def test_merge_areas_of_three_columns_without_headers():
+    """不用headers也可以"""
+    table = Table(headers=[],
+                  body=[[1, 2, 3, 4], [1, 2, 3, 5], [1, 2, 3, 6]])
+    areas = table.select(ColumnSelector(column=1, group=True))
+    areas.merge_all()
+
+    areas = table.select(ColumnSelector(column=2, group=True))
+    areas.merge_all()
+
+    areas = table.select(ColumnSelector(column=3, group=True))
+    areas.merge_all()
+
+    cells = [[Cell(1, height=3), Cell(2, height=3), Cell(3, height=3), Cell(4)],
+             [None, None, None, Cell(5)],
+             [None, None, None, Cell(6)]]
+    assert cells == list(table)
+
+
+def test_add_nested_summary_will_modify_cell():
     table = Table(headers=[['header1', 'header2', 'header3']],
                   body=[[1, 2, 3], [1, 2, 4], [1, 3, 5], [2, 3, 4], [2, 4, 5]])
 
@@ -280,7 +355,7 @@ def test_nested_make_total_modify_data_cells():
                            [Cell('total', width=2), None, Cell(21)]]
 
 
-def test_nested_make_total_modify_data_cells_2():
+def test_add_nested_summary_will_modify_cell_2():
     table = Table(
         headers=[
             ['燃气销售报表', None, None, None, None, None, None],
@@ -337,33 +412,13 @@ def test_nested_make_total_modify_data_cells_2():
     ]
 
 
-def test_excel_writer():
-    table = Table(headers=[['header1', 'header2', 'header3']],
-                  body=[[1, 2, 3], [1, 2, 4], [1, 3, 5], [2, 3, 4], [2, 4, 5]])
-
-    areas = table.select(ColumnSelector(column=1, group=True))
-    areas.merge_all()
-    areas.add_summary_of_all(text_span=1, text='total', location='left')
-
-    area = Area(table, 3, 7, (1, 0))
-    area.add_summary(text_span=2, text='total', location='down')
-
-    wb = Workbook()
-    ws = wb.active
-    # must be unicode
-    ws.title = '报表'
-    ws.sheet_properties.tabColor = "1072BA"
-
-    ExcelWriter.wrtie(ws, table, (1, 1))
-
-    wb.save('1.xlsx')
-
-
 def test_set_global_style_on_table():
     style = {}
     table = Table(
         headers=[['test', None, None], ['header1', 'header2', 'header3']],
-        body=[[1, 2, 3], [4, 5, 6], [7, 8, 9]], style=style)
+        body=[[1, 2, 3], [4, 5, 6], [7, 8, 9]],
+        style=style
+    )
 
     for row in table:
         for cell in row:
@@ -388,7 +443,7 @@ def test_set_style_of_headers():
     assert id(table[2][0].style) == id(table_style)
 
 
-def test_merge_areas_style():
+def test_set_merged_areas_style():
     style = {}
     table = Table(headers=[['header1', 'header2', 'header3']],
                   body=[[1, 2, 3], [1, 2, 4], [1, 3, 5], [2, 3, 4], [2, 4, 5]])
@@ -400,7 +455,7 @@ def test_merge_areas_style():
     assert table[0][0].style is None
 
 
-def test_style_of_making_total():
+def test_set_summary_style():
     table = Table(headers=[['header1', 'header2', 'header3']],
                   body=[[1, 2, 3], [1, 2, 4], [1, 3, 5], [2, 3, 4], [2, 4, 5]])
 
@@ -432,6 +487,28 @@ def test_style_of_making_total():
     assert id(table[8][0].style) == id(label_style2)
     assert id(table[8][2].style) == id(value_style2)
     assert table[0][0].style is None
+
+
+def test_excel_writer():
+    table = Table(headers=[['header1', 'header2', 'header3']],
+                  body=[[1, 2, 3], [1, 2, 4], [1, 3, 5], [2, 3, 4], [2, 4, 5]])
+
+    areas = table.select(ColumnSelector(column=1, group=True))
+    areas.merge_all()
+    areas.add_summary_of_all(text_span=1, text='total', location='left')
+
+    area = Area(table, 3, 7, (1, 0))
+    area.add_summary(text_span=2, text='total', location='down')
+
+    wb = Workbook()
+    ws = wb.active
+    # must be unicode
+    ws.title = '报表'
+    ws.sheet_properties.tabColor = "1072BA"
+
+    ExcelWriter.wrtie(ws, table, (1, 1))
+
+    wb.save('1.xlsx')
 
 
 # todo: dictnary pool,cell pool etc.
@@ -491,14 +568,6 @@ def test_write_excel_with_style():
     ExcelWriter.wrtie(ws, table, (0, 0))
 
     wb.save('2.xlsx')
-
-
-def test_auto_merge():
-    table = Table(headers=[['test', None], ['header1', 'header2']],
-                  body=[[1, 2], ])
-    assert list(table) == [[Cell('test', width=2), None],
-                           [Cell('header1'), Cell('header2')],
-                           [Cell(1), Cell(2)]]
 
 
 def test_write_non_ascii_chracter_into_excel_with_style():
@@ -569,79 +638,3 @@ def test_write_non_ascii_chracter_into_excel_with_style():
     ExcelWriter.wrtie(ws, table, (0, 0))
 
     wb.save('3.xlsx')
-
-
-def test_merged_cell_2():
-    table = Table(headers=[['header1', 'header2', 'header3', 'header4']],
-                  body=[[1, 2, 3, 4], [1, 2, 3, 5], [1, 2, 3, 6]])
-    areas = table.select(ColumnSelector(column=1, group=True))
-    areas.merge_all()
-
-    areas = table.select(ColumnSelector(column=2, group=True))
-    areas.merge_all()
-
-    areas = table.select(ColumnSelector(column=3, group=True))
-    areas.merge_all()
-
-    cells = [
-        [Cell('header1'), Cell('header2'), Cell('header3'), Cell('header4')],
-        [Cell(1, height=3), Cell(2, height=3), Cell(3, height=3), Cell(4)],
-        [None, None, None, Cell(5)],
-        [None, None, None, Cell(6)]]
-    assert cells == list(table)
-
-
-def test_merged_cell_3():
-    table = Table(headers=[['header1', 'header2', 'header3', 'header4']],
-                  body=[[1, 2, 3, 5], [1, 2, 3, 9], [1, 2, 33, 6],
-                        [1, 2, 33, 1],
-                        [1, 22, 3, 2], [1, 22, 3, 4], [1, 22, 33, 3],
-                        [1, 22, 33, 2]])
-    areas = table.select(ColumnSelector(column=1, group=True))
-    areas.merge_all()
-
-    areas = table.select(ColumnSelector(column=2, group=True))
-    areas.merge_all()
-
-    areas = table.select(ColumnSelector(column=3, group=True))
-    areas.merge_all()
-
-    cells = [
-        [Cell('header1'), Cell('header2'), Cell('header3'), Cell('header4')],
-        [Cell(1, height=8), Cell(2, height=4), Cell(3, height=2), Cell(5)],
-        [None, None, None, Cell(9)],
-        [None, None, Cell(33, height=2), Cell(6)],
-        [None, None, None, Cell(1)],
-        [None, Cell(22, height=4), Cell(3, height=2), Cell(2)],
-        [None, None, None, Cell(4)],
-        [None, None, Cell(33, height=2), Cell(3)],
-        [None, None, None, Cell(2)]]
-    assert cells == list(table)
-
-
-def test_merged_cell_4():
-    """不用headers也可以"""
-    table = Table(headers=[],
-                  body=[[1, 2, 3, 4], [1, 2, 3, 5], [1, 2, 3, 6]])
-    areas = table.select(ColumnSelector(column=1, group=True))
-    areas.merge_all()
-
-    areas = table.select(ColumnSelector(column=2, group=True))
-    areas.merge_all()
-
-    areas = table.select(ColumnSelector(column=3, group=True))
-    areas.merge_all()
-
-    cells = [[Cell(1, height=3), Cell(2, height=3), Cell(3, height=3), Cell(4)],
-             [None, None, None, Cell(5)],
-             [None, None, None, Cell(6)]]
-    assert cells == list(table)
-
-
-def test_table_2():
-    table = Table(headers=[],
-                  body=[])
-
-    assert table.width == 0
-    assert table.height == 0
-    assert table.position == (0, 0)

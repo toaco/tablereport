@@ -214,9 +214,6 @@ class Table(Area):
             else:
                 break
 
-    def append_total(self, span, text, style):
-        pass
-
     def select(self, selector):
         # select an area in self
         sub_area = Area(top_area=self, width=self.width, height=len(self.body),
