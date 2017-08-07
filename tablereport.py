@@ -14,12 +14,12 @@ class Areas(list):
             areas = []
         super(Areas, self).__init__(areas)
 
-    def merge_all(self, style=None):
+    def merge(self, style=None):
         for area in self:
             area.merge(style)
 
-    def add_summary_of_all(self, text_span, text, location, label_style=None,
-                           value_style=None):
+    def add_summary(self, text_span, text, location, label_style=None,
+                    value_style=None):
         for area in self:
             area.add_summary(text_span, text, location, label_style,
                              value_style)
@@ -36,9 +36,9 @@ class Area(object):
     
     """
 
-    def __init__(self, top_area, width, height, position, style=None):
-        self.top_area = top_area
-        self.top_area.areas.append(self)
+    def __init__(self, table, width, height, position, style=None):
+        self.table = table
+        self.table.areas.append(self)
 
         self.width = width
         self.height = height
@@ -53,7 +53,7 @@ class Area(object):
         rows = []
         for row_num in xrange(self.height):
             position = self.x + row_num, self.y
-            row = Row(self.top_area, position, self.width)
+            row = Row(self.table, position, self.width)
             rows.append(row)
         return rows
 
@@ -76,9 +76,9 @@ class Area(object):
             cell.height += 1
 
             new_col_num = self.x + self.height
-            self.top_area._data.insert(new_col_num,
-                                       [None] * self.top_area.width)
-            appended_row = self.top_area[new_col_num]
+            self.table._data.insert(new_col_num,
+                                       [None] * self.table.width)
+            appended_row = self.table[new_col_num]
 
             # calculate total value
             if text_span != 0:
@@ -86,22 +86,22 @@ class Area(object):
                 if label_style is not None:
                     appended_row[self.y + self.width].style = label_style
             for col_num in xrange(self.y + self.width + text_span,
-                                  self.top_area.width):
+                                  self.table.width):
                 total = 0
                 for row_num in xrange(self.x, self.x + self.height):
-                    if row_num in self.top_area.total_row_nums:
+                    if row_num in self.table.total_row_nums:
                         continue
-                    total += self.top_area[row_num][col_num].value
+                    total += self.table[row_num][col_num].value
                 appended_row[col_num] = Cell(total)
                 if value_style is not None:
                     appended_row[col_num].style = value_style
                 else:
-                    appended_row[col_num].style = self.top_area.style
+                    appended_row[col_num].style = self.table.style
 
-            self.top_area.total_row_nums.add(new_col_num)
+            self.table.total_row_nums.add(new_col_num)
 
             # update area attribute
-            for area in self.top_area.areas:
+            for area in self.table.areas:
                 if new_col_num > area.position[0] + area.height:
                     continue
                 elif area.position[0] + area.height >= new_col_num > \
@@ -112,30 +112,30 @@ class Area(object):
                     area.x += 1
         elif location == 'down':
             new_col_num = self.x + self.height
-            self.top_area._data.insert(new_col_num,
-                                       [None] * self.top_area.width)
-            appended_row = self.top_area[new_col_num]
+            self.table._data.insert(new_col_num,
+                                       [None] * self.table.width)
+            appended_row = self.table[new_col_num]
 
             # calculate total value
             if text_span != 0:
                 appended_row[self.y] = Cell(text, width=text_span)
                 if label_style is not None:
                     appended_row[self.y].style = label_style
-            for col_num in xrange(self.y + text_span, self.top_area.width):
+            for col_num in xrange(self.y + text_span, self.table.width):
                 total = 0
                 for row_num in xrange(self.x, self.x + self.height):
-                    if row_num in self.top_area.total_row_nums:
+                    if row_num in self.table.total_row_nums:
                         continue
-                    total += self.top_area[row_num][col_num].value
+                    total += self.table[row_num][col_num].value
                 appended_row[col_num] = Cell(total)
                 if value_style is not None:
                     appended_row[col_num].style = value_style
                 else:
-                    appended_row[col_num].style = self.top_area.style
-            self.top_area.total_row_nums.add(new_col_num)
+                    appended_row[col_num].style = self.table.style
+            self.table.total_row_nums.add(new_col_num)
 
             # update area attribute
-            for area in self.top_area.areas:
+            for area in self.table.areas:
                 if new_col_num > area.position[0] + area.height:
                     continue
                 elif area.position[0] + area.height >= new_col_num > \
@@ -154,13 +154,13 @@ class Area(object):
 
     # 没有该方法一样可迭代，根据的是__getitem__
     def __getitem__(self, item):
-        return self.top_area.data[item]
+        return self.table.data[item]
 
     def __setitem__(self, key, value):
-        self.top_area.data[key] = value
+        self.table.data[key] = value
 
 
-class Table(Area):
+class Table(object):
     def __init__(self, headers=None, body=None, style=None):
 
         if headers is None:
@@ -192,8 +192,17 @@ class Table(Area):
             width = len(self._data[0])
         except IndexError:
             width = 0
-        Area.__init__(self, top_area=self, width=width, height=len(self._data),
-                      position=(0, 0), style=style)
+
+        self.width = width
+        self.height = len(self._data)
+        self.style = style
+
+    # 没有该方法一样可迭代，根据的是__getitem__
+    def __getitem__(self, item):
+        return self._data[item]
+
+    def __setitem__(self, key, value):
+        self._data[key] = value
 
     @property
     def data(self):
@@ -216,33 +225,34 @@ class Table(Area):
 
     def select(self, selector):
         # select an area in self
-        sub_area = Area(top_area=self, width=self.width, height=len(self.body),
+        sub_area = Area(table=self, width=self.width, height=len(self.body),
                         position=(len(self.headers), 0))
         areas = selector.select(sub_area)
         return areas
 
     def add_summary(self, text_span, text, location, label_style=None,
                     value_style=None):
-        body = Area(top_area=self, width=self.width,
-                    height=self.height - len(self.headers),
-                    position=(self.x + len(self.headers), 0))
+        # todo width and height should auto change
+        body = Area(table=self, width=self.width,
+                    height=len(self.data)- len(self.headers),
+                    position=(len(self.headers), 0))
         body.add_summary(text_span, text, location, label_style, value_style)
 
 
 class Row(object):
-    def __init__(self, top_area, position, width):
-        self.top_area = top_area
+    def __init__(self, table, position, width):
+        self.table = table
         self.position = position
         self.x, self.y = position
         self.width = width
 
     def __getitem__(self, col):
         assert col < self.width
-        return self.top_area[self.x][self.y + col]
+        return self.table[self.x][self.y + col]
 
     def __setitem__(self, col, value):
         assert col < self.width
-        self.top_area[self.x][self.y + col] = value
+        self.table[self.x][self.y + col] = value
 
     def __eq__(self, iterable):
         return all(self[i] == iterable[i] for i in xrange(self.width))
@@ -291,7 +301,7 @@ class ColumnSelector:
         x, y = area.position
 
         y += self.column - 1
-        area = Area(top_area=area.top_area, width=1, height=area.height,
+        area = Area(table=area.table, width=1, height=area.height,
                     position=(x, y))
 
         areas = Areas()
@@ -304,14 +314,14 @@ class ColumnSelector:
                 if area.data[row_num][0] == start_value:
                     continue
                 else:
-                    sub_area = Area(top_area=area.top_area, width=1,
+                    sub_area = Area(table=area.table, width=1,
                                     height=row_num - start_index,
                                     position=(x + start_index, y))
                     start_value = area.data[row_num][0]
                     start_index = row_num
                     areas.append(sub_area)
             else:
-                sub_area = Area(top_area=area.top_area, width=1,
+                sub_area = Area(table=area.table, width=1,
                                 height=len(area.data) - start_index,
                                 position=(x + start_index, y))
                 areas.append(sub_area)

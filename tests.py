@@ -15,7 +15,6 @@ def test_table_initialize():
 
     assert table.width == 3
     assert table.height == 5
-    assert table.position == (0, 0)
 
 
 def test_initialize_table_with_empty_headers_and_empty_body():
@@ -24,7 +23,6 @@ def test_initialize_table_with_empty_headers_and_empty_body():
 
     assert table.width == 0
     assert table.height == 0
-    assert table.position == (0, 0)
 
 
 def test_column_selector_select_right_area_of_area():
@@ -127,7 +125,7 @@ def test_merge_areas_1():
     table = Table(headers=[['header1', 'header2', 'header3']],
                   body=[[1, 2, 3], [1, 2, 4], [1, 3, 5], [2, 3, 4]])
     areas = table.select(ColumnSelector(column=1, group=True))
-    areas.merge_all()
+    areas.merge()
 
     assert table.data == [['header1', 'header2', 'header3'],
                           [1, 2, 3], [None, 2, 4], [None, 3, 5], [2, 3, 4]]
@@ -137,7 +135,7 @@ def test_merge_areas_2():
     table = Table(headers=[['header1', 'header2', 'header3']],
                   body=[[1, 2, 3], [1, 2, 4], [1, 3, 5], [2, 3, 4], [2, 4, 5]])
     areas = table.select(ColumnSelector(column=1, group=True))
-    areas.merge_all()
+    areas.merge()
 
     assert table.data == [['header1', 'header2', 'header3'],
                           [1, 2, 3], [None, 2, 4], [None, 3, 5], [2, 3, 4],
@@ -148,9 +146,9 @@ def test_add_summary_at_left_side_will_modify_table():
     table = Table(headers=[['header1', 'header2', 'header3']],
                   body=[[1, 2, 3], [1, 2, 4], [1, 3, 5], [2, 3, 4], [2, 4, 5]])
     areas = table.select(ColumnSelector(column=1, group=True))
-    areas.merge_all()
+    areas.merge()
 
-    areas.add_summary_of_all(text_span=1, text='total', location='left')
+    areas.add_summary(text_span=1, text='total', location='left')
 
     assert table.data == [['header1', 'header2', 'header3'],
                           [1, 2, 3], [None, 2, 4], [None, 3, 5],
@@ -162,9 +160,9 @@ def test_add_summary_at_left_side_will_modify_areas():
     table = Table(headers=[['header1', 'header2', 'header3']],
                   body=[[1, 2, 3], [1, 2, 4], [1, 3, 5], [2, 3, 4], [2, 4, 5]])
     areas = table.select(ColumnSelector(column=1, group=True))
-    areas.merge_all()
+    areas.merge()
 
-    areas.add_summary_of_all(text_span=2, text='total', location='down')
+    areas.add_summary(text_span=2, text='total', location='down')
 
     area1 = areas[0]
     assert area1.width == 1
@@ -181,9 +179,9 @@ def test_add_summary_below_will_modify_table():
     table = Table(headers=[['header1', 'header2', 'header3']],
                   body=[[1, 2, 3], [1, 2, 4], [1, 3, 5], [2, 3, 4], [2, 4, 5]])
     areas = table.select(ColumnSelector(column=1, group=True))
-    areas.merge_all()
+    areas.merge()
 
-    areas.add_summary_of_all(text_span=2, text='total', location='down')
+    areas.add_summary(text_span=2, text='total', location='down')
 
     assert table.data == [['header1', 'header2', 'header3'],
                           [1, 2, 3], [None, 2, 4], [None, 3, 5],
@@ -217,8 +215,8 @@ def test_add_nested_summary_will_modify_table():
                   body=[[1, 2, 3], [1, 2, 4], [1, 3, 5], [2, 3, 4], [2, 4, 5]])
 
     areas = table.select(ColumnSelector(column=1, group=True))
-    areas.merge_all()
-    areas.add_summary_of_all(text_span=1, text='total', location='left')
+    areas.merge()
+    areas.add_summary(text_span=1, text='total', location='left')
 
     area = Area(table, 3, 7, (1, 0))
     area.add_summary(text_span=2, text='total', location='down')
@@ -258,7 +256,7 @@ def test_merge_area_will_modify_cell():
     table = Table(headers=[['header1', 'header2']],
                   body=[[1, 2], [1, 3], [2, 3]])
     areas = table.select(ColumnSelector(column=1, group=True))
-    areas.merge_all()
+    areas.merge()
 
     cells = [[Cell('header1'), Cell('header2')], [Cell(1, height=2), Cell(2)],
              [None, Cell(3)],
@@ -270,13 +268,13 @@ def test_merge_areas_of_three_columns():
     table = Table(headers=[['header1', 'header2', 'header3', 'header4']],
                   body=[[1, 2, 3, 4], [1, 2, 3, 5], [1, 2, 3, 6]])
     areas = table.select(ColumnSelector(column=1, group=True))
-    areas.merge_all()
+    areas.merge()
 
     areas = table.select(ColumnSelector(column=2, group=True))
-    areas.merge_all()
+    areas.merge()
 
     areas = table.select(ColumnSelector(column=3, group=True))
-    areas.merge_all()
+    areas.merge()
 
     cells = [
         [Cell('header1'), Cell('header2'), Cell('header3'), Cell('header4')],
@@ -293,13 +291,13 @@ def test_merge_areas_of_three_columns_2():
                         [1, 22, 3, 2], [1, 22, 3, 4], [1, 22, 33, 3],
                         [1, 22, 33, 2]])
     areas = table.select(ColumnSelector(column=1, group=True))
-    areas.merge_all()
+    areas.merge()
 
     areas = table.select(ColumnSelector(column=2, group=True))
-    areas.merge_all()
+    areas.merge()
 
     areas = table.select(ColumnSelector(column=3, group=True))
-    areas.merge_all()
+    areas.merge()
 
     cells = [
         [Cell('header1'), Cell('header2'), Cell('header3'), Cell('header4')],
@@ -319,13 +317,13 @@ def test_merge_areas_of_three_columns_without_headers():
     table = Table(headers=[],
                   body=[[1, 2, 3, 4], [1, 2, 3, 5], [1, 2, 3, 6]])
     areas = table.select(ColumnSelector(column=1, group=True))
-    areas.merge_all()
+    areas.merge()
 
     areas = table.select(ColumnSelector(column=2, group=True))
-    areas.merge_all()
+    areas.merge()
 
     areas = table.select(ColumnSelector(column=3, group=True))
-    areas.merge_all()
+    areas.merge()
 
     cells = [[Cell(1, height=3), Cell(2, height=3), Cell(3, height=3), Cell(4)],
              [None, None, None, Cell(5)],
@@ -338,8 +336,8 @@ def test_add_nested_summary_will_modify_cell():
                   body=[[1, 2, 3], [1, 2, 4], [1, 3, 5], [2, 3, 4], [2, 4, 5]])
 
     areas = table.select(ColumnSelector(column=1, group=True))
-    areas.merge_all()
-    areas.add_summary_of_all(text_span=1, text='total', location='left')
+    areas.merge()
+    areas.add_summary(text_span=1, text='total', location='left')
 
     area = Area(table, 3, 7, (1, 0))
     area.add_summary(text_span=2, text='total', location='down')
@@ -372,10 +370,21 @@ def test_add_nested_summary_will_modify_cell_2():
     )
 
     areas = table.select(ColumnSelector(column=1, group=True))
-    areas.merge_all()
-    areas.add_summary_of_all(text_span=3, text='区域合计', location='left')
+    areas.merge()
+    areas.add_summary(text_span=3, text='区域合计', location='left')
+
+    print list(table)
+    print len(table.data)
+    for i in table:
+        print i
+
 
     table.add_summary(text_span=4, text='总合计', location='down')
+
+    print list(table)
+    print len(table.data)
+    for i in table:
+        print i
 
     assert list(table) == [
         [Cell(value="燃气销售报表", width=7, ), None, None, None, None, None, None],
@@ -448,7 +457,7 @@ def test_set_merged_areas_style():
     table = Table(headers=[['header1', 'header2', 'header3']],
                   body=[[1, 2, 3], [1, 2, 4], [1, 3, 5], [2, 3, 4], [2, 4, 5]])
     areas = table.select(ColumnSelector(column=1, group=True))
-    areas.merge_all(style=style)
+    areas.merge(style=style)
 
     assert id(table[1][0].style) == id(style)
     assert id(table[4][0].style) == id(style)
@@ -465,10 +474,10 @@ def test_set_summary_style():
     value_style2 = Style()
 
     areas = table.select(ColumnSelector(column=1, group=True))
-    areas.merge_all()
-    areas.add_summary_of_all(text_span=1, text='total', location='left',
-                             label_style=label_style,
-                             value_style=value_style)
+    areas.merge()
+    areas.add_summary(text_span=1, text='total', location='left',
+                      label_style=label_style,
+                      value_style=value_style)
 
     area = Area(table, 3, 7, (1, 0))
     area.add_summary(text_span=2, text='total', location='down',
@@ -494,8 +503,8 @@ def test_excel_writer():
                   body=[[1, 2, 3], [1, 2, 4], [1, 3, 5], [2, 3, 4], [2, 4, 5]])
 
     areas = table.select(ColumnSelector(column=1, group=True))
-    areas.merge_all()
-    areas.add_summary_of_all(text_span=1, text='total', location='left')
+    areas.merge()
+    areas.add_summary(text_span=1, text='total', location='left')
 
     area = Area(table, 3, 7, (1, 0))
     area.add_summary(text_span=2, text='total', location='down')
@@ -551,9 +560,9 @@ def test_write_excel_with_style():
                   style=table_style)
 
     areas = table.select(ColumnSelector(column=1, group=True))
-    areas.merge_all(style=merged_cell_style)
-    areas.add_summary_of_all(text_span=1, text='total', location='left',
-                             label_style=left_total_label_style)
+    areas.merge(style=merged_cell_style)
+    areas.add_summary(text_span=1, text='total', location='left',
+                      label_style=left_total_label_style)
 
     area = Area(table, 3, 7, (2, 0))
     area.add_summary(text_span=2, text='total', location='down',
@@ -620,10 +629,10 @@ def test_write_non_ascii_chracter_into_excel_with_style():
         ], style=table_style)
 
     areas = table.select(ColumnSelector(column=1, group=True))
-    areas.merge_all()
-    areas.add_summary_of_all(text_span=3, text='区域合计', location='left',
-                             label_style=left_total_label_style,
-                             value_style=left_total_value_style)
+    areas.merge()
+    areas.add_summary(text_span=3, text='区域合计', location='left',
+                      label_style=left_total_label_style,
+                      value_style=left_total_value_style)
 
     table.add_summary(text_span=4, text='总合计', location='down',
                       label_style=bottom_total_label_style,
