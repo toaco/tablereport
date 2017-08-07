@@ -152,16 +152,29 @@ class Area(object):
         area = selector.select(self)
         return area
 
-
-class TopArea(Area):
     # 没有该方法一样可迭代，根据的是__getitem__
     def __getitem__(self, item):
-        return self._data[item]
+        return self.top_area.data[item]
 
     def __setitem__(self, key, value):
-        self._data[key] = value
+        self.top_area.data[key] = value
 
-    def __init__(self, data, style=None):
+
+class Table(Area):
+    def __init__(self, headers=None, body=None, style=None):
+
+        if headers is None:
+            headers = []
+
+        if body is None:
+            body = []
+
+        self.headers = headers
+        self.body = body
+
+        self.table = self.headers + self.body
+        data = self.table
+
         for row_num in xrange(len(data)):
             for col_num in xrange(len(data[0])):
                 cell = data[row_num][col_num]
@@ -182,7 +195,12 @@ class TopArea(Area):
         Area.__init__(self, top_area=self, width=width, height=len(self._data),
                       position=(0, 0), style=style)
 
-    def _auto_merge(self, data, row_num, col_num):
+    @property
+    def data(self):
+        return self._data
+
+    @staticmethod
+    def _auto_merge(data, row_num, col_num):
         # todo: range judge
         for i in xrange(row_num + 1, len(data)):
             if data[i][col_num] is None:
@@ -195,15 +213,6 @@ class TopArea(Area):
                 data[row_num][col_num].width += 1
             else:
                 break
-
-
-class Table(TopArea):
-    def __init__(self, headers, body, style=None):
-        self.headers = headers
-        self.body = body
-
-        self.table = self.headers + self.body
-        super(Table, self).__init__(data=self.table, style=style)
 
     def append_total(self, span, text, style):
         pass

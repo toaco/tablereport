@@ -8,7 +8,7 @@ from tablereport import *
 
 
 def test_column_selector_select_right_area_in_top_area():
-    top_area = TopArea(data=[[1, 2, 3, ], [4, 5, 6], [7, 8, 9]])
+    top_area = Table(body=[[1, 2, 3, ], [4, 5, 6], [7, 8, 9]])
     area = Area(top_area, 3, 3, (0, 0))
     sub_area = area.select(ColumnSelector(column=2, group=False)).one()
 
@@ -18,8 +18,9 @@ def test_column_selector_select_right_area_in_top_area():
 
 
 def test_table():
-    table = Table(headers=[['test', None, None], ['header1', 'header2', 'header3']],
-                  body=[[1, 2, 3], [4, 5, 6], [7, 8, 9]])
+    table = Table(
+        headers=[['test', None, None], ['header1', 'header2', 'header3']],
+        body=[[1, 2, 3], [4, 5, 6], [7, 8, 9]])
 
     assert table.width == 3
     assert table.height == 5
@@ -85,7 +86,7 @@ def test_areas():
 
 def test_get_area_data():
     """区域的data属性支持获取操作"""
-    area = TopArea(data=[[1, 2, 3, ], [4, 5, 6], [7, 8, 9]])
+    area = Table(body=[[1, 2, 3, ], [4, 5, 6], [7, 8, 9]])
     sub_area = area.select(ColumnSelector(column=2, group=False)).one()
 
     assert sub_area.data[0][0] == 2
@@ -97,7 +98,7 @@ def test_get_area_data():
 
 def test_set_area_data():
     """区域的data属性支持设置操作"""
-    area = TopArea(data=[[1, 2, 3, ], [4, 5, 6], [7, 8, 9]])
+    area = Table(body=[[1, 2, 3, ], [4, 5, 6], [7, 8, 9]])
     sub_area = area.select(ColumnSelector(column=2, group=False)).one()
 
     sub_area.data[0][0] = 1
@@ -128,7 +129,8 @@ def test_merge_areas_2():
     areas.merge_all()
 
     assert table.data == [['header1', 'header2', 'header3'],
-                          [1, 2, 3], [None, 2, 4], [None, 3, 5], [2, 3, 4], [None, 4, 5]]
+                          [1, 2, 3], [None, 2, 4], [None, 3, 5], [2, 3, 4],
+                          [None, 4, 5]]
 
 
 def test_make_total_with_located_at_left_side_modify_areas():
@@ -159,7 +161,8 @@ def test_make_total_with_located_at_left_side_modify_data():
     areas.add_summary_of_all(text_span=1, text='total', location='left')
 
     assert table.data == [['header1', 'header2', 'header3'],
-                          [1, 2, 3], [None, 2, 4], [None, 3, 5], [None, 'total', 12],
+                          [1, 2, 3], [None, 2, 4], [None, 3, 5],
+                          [None, 'total', 12],
                           [2, 3, 4], [None, 4, 5], [None, 'total', 9]]
 
 
@@ -191,7 +194,8 @@ def test_make_total_with_located_at_down_side_modify_data():
     areas.add_summary_of_all(text_span=2, text='total', location='down')
 
     assert table.data == [['header1', 'header2', 'header3'],
-                          [1, 2, 3], [None, 2, 4], [None, 3, 5], ['total', None, 12],
+                          [1, 2, 3], [None, 2, 4], [None, 3, 5],
+                          ['total', None, 12],
                           [2, 3, 4], [None, 4, 5], ['total', None, 9]]
 
 
@@ -212,7 +216,8 @@ def test_make_total_with_located_at_down_side_modify_table_data():
     area = Area(table, 3, 5, (1, 0))
     area.add_summary(text_span=2, text='total', location='down')
 
-    assert area.data == [[1, 2, 3], [1, 2, 4], [1, 3, 5], [2, 3, 4], [2, 4, 5], ['total', None, 21]]
+    assert area.data == [[1, 2, 3], [1, 2, 4], [1, 3, 5], [2, 3, 4], [2, 4, 5],
+                         ['total', None, 21]]
 
 
 def test_nested_make_total_modify_data():
@@ -227,12 +232,14 @@ def test_nested_make_total_modify_data():
     area.add_summary(text_span=2, text='total', location='down')
 
     assert table.data == [['header1', 'header2', 'header3'],
-                          [1, 2, 3], [None, 2, 4], [None, 3, 5], [None, 'total', 12],
-                          [2, 3, 4], [None, 4, 5], [None, 'total', 9], ['total', None, 21]]
+                          [1, 2, 3], [None, 2, 4], [None, 3, 5],
+                          [None, 'total', 12],
+                          [2, 3, 4], [None, 4, 5], [None, 'total', 9],
+                          ['total', None, 21]]
 
 
 def test_simple_cell():
-    top_area = TopArea(data=[[1, 2, ], [4, 5, ]])
+    top_area = Table(body=[[1, 2, ], [4, 5, ]])
 
     cells = [[Cell(1), Cell(2)], [Cell(4), Cell(5)]]
 
@@ -245,7 +252,8 @@ def test_merged_cell():
     areas = table.select(ColumnSelector(column=1, group=True))
     areas.merge_all()
 
-    cells = [[Cell('header1'), Cell('header2')], [Cell(1, height=2), Cell(2)], [None, Cell(3)],
+    cells = [[Cell('header1'), Cell('header2')], [Cell(1, height=2), Cell(2)],
+             [None, Cell(3)],
              [Cell(2), Cell(3)]]
     assert cells == list(table)
 
@@ -262,10 +270,14 @@ def test_nested_make_total_modify_data_cells():
     area.add_summary(text_span=2, text='total', location='down')
 
     assert list(table) == [[Cell('header1'), Cell('header2'), Cell('header3')],
-                           [Cell(1, height=4), Cell(2), Cell(3)], [None, Cell(2), Cell(4)],
-                           [None, Cell(3), Cell(5)], [None, Cell('total'), Cell(12)],
-                           [Cell(2, height=3), Cell(3), Cell(4)], [None, Cell(4), Cell(5)],
-                           [None, Cell('total'), Cell(9)], [Cell('total', width=2), None, Cell(21)]]
+                           [Cell(1, height=4), Cell(2), Cell(3)],
+                           [None, Cell(2), Cell(4)],
+                           [None, Cell(3), Cell(5)],
+                           [None, Cell('total'), Cell(12)],
+                           [Cell(2, height=3), Cell(3), Cell(4)],
+                           [None, Cell(4), Cell(5)],
+                           [None, Cell('total'), Cell(9)],
+                           [Cell('total', width=2), None, Cell(21)]]
 
 
 def test_nested_make_total_modify_data_cells_2():
@@ -292,25 +304,35 @@ def test_nested_make_total_modify_data_cells_2():
 
     assert list(table) == [
         [Cell(value="燃气销售报表", width=7, ), None, None, None, None, None, None],
-        [Cell(value="用气区域", ), Cell(value="用气性质", ), Cell(value="单价", ), Cell(value="表具类型", ),
+        [Cell(value="用气区域", ), Cell(value="用气性质", ), Cell(value="单价", ),
+         Cell(value="表具类型", ),
          Cell(value="地址数", ), Cell(value="发行气量", ), Cell(value="发行应收", )],
-        [Cell(value="歆茗", height=4), Cell(value="商业用气", ), Cell(value=1.3, ), Cell(value="普表", ),
+        [Cell(value="歆茗", height=4), Cell(value="商业用气", ), Cell(value=1.3, ),
+         Cell(value="普表", ),
          Cell(value=10, ), Cell(value=12, ), Cell(value=34, )],
-        [None, Cell(value="居民用气", ), Cell(value=1.2, ), Cell(value="IC卡表", ), Cell(value=11, ),
+        [None, Cell(value="居民用气", ), Cell(value=1.2, ), Cell(value="IC卡表", ),
+         Cell(value=11, ),
          Cell(value=12, ), Cell(value=12, )],
-        [None, Cell(value="居民用气", ), Cell(value=1.5, ), Cell(value="IC卡表", ), Cell(value=13, ),
+        [None, Cell(value="居民用气", ), Cell(value=1.5, ), Cell(value="IC卡表", ),
+         Cell(value=13, ),
          Cell(value=12, ), Cell(value=64, )],
-        [None, Cell(value="区域合计", width=3, ), None, None, Cell(value=34, ), Cell(value=36, ),
+        [None, Cell(value="区域合计", width=3, ), None, None, Cell(value=34, ),
+         Cell(value=36, ),
          Cell(value=110, )],
-        [Cell(value="授保", height=4), Cell(value="商业用气", ), Cell(value=1.6, ), Cell(value="普表", ),
+        [Cell(value="授保", height=4), Cell(value="商业用气", ), Cell(value=1.6, ),
+         Cell(value="普表", ),
          Cell(value=23, ), Cell(value=18, ), Cell(value=25, )],
-        [None, Cell(value="居民用气", ), Cell(value=1.7, ), Cell(value="IC卡表", ), Cell(value=26, ),
+        [None, Cell(value="居民用气", ), Cell(value=1.7, ), Cell(value="IC卡表", ),
+         Cell(value=26, ),
          Cell(value=10, ), Cell(value=52, )],
-        [None, Cell(value="居民用气", ), Cell(value=1.8, ), Cell(value="IC卡表", ), Cell(value=16, ),
+        [None, Cell(value="居民用气", ), Cell(value=1.8, ), Cell(value="IC卡表", ),
+         Cell(value=16, ),
          Cell(value=25, ), Cell(value=12, )],
-        [None, Cell(value="区域合计", width=3, ), None, None, Cell(value=65, ), Cell(value=53, ),
+        [None, Cell(value="区域合计", width=3, ), None, None, Cell(value=65, ),
+         Cell(value=53, ),
          Cell(value=89, )],
-        [Cell(value="总合计", width=4, ), None, None, None, Cell(value=99, ), Cell(value=89, ),
+        [Cell(value="总合计", width=4, ), None, None, None, Cell(value=99, ),
+         Cell(value=89, ),
          Cell(value=199, )]
     ]
 
@@ -339,8 +361,9 @@ def test_excel_writer():
 
 def test_set_global_style_on_table():
     style = {}
-    table = Table(headers=[['test', None, None], ['header1', 'header2', 'header3']],
-                  body=[[1, 2, 3], [4, 5, 6], [7, 8, 9]], style=style)
+    table = Table(
+        headers=[['test', None, None], ['header1', 'header2', 'header3']],
+        body=[[1, 2, 3], [4, 5, 6], [7, 8, 9]], style=style)
 
     for row in table:
         for cell in row:
@@ -353,7 +376,8 @@ def test_set_style_of_headers():
     title_style = Style()
     header_style = Style()
     table = Table(headers=[[('test', title_style), None, None],
-                           [('header1', header_style), ('header2', header_style),
+                           [('header1', header_style),
+                            ('header2', header_style),
                             ('header3', header_style)]],
                   body=[[1, 2, 3], [4, 5, 6], [7, 8, 9]], style=table_style)
 
@@ -387,16 +411,20 @@ def test_style_of_making_total():
 
     areas = table.select(ColumnSelector(column=1, group=True))
     areas.merge_all()
-    areas.add_summary_of_all(text_span=1, text='total', location='left', label_style=label_style,
+    areas.add_summary_of_all(text_span=1, text='total', location='left',
+                             label_style=label_style,
                              value_style=value_style)
 
     area = Area(table, 3, 7, (1, 0))
-    area.add_summary(text_span=2, text='total', location='down', label_style=label_style2,
+    area.add_summary(text_span=2, text='total', location='down',
+                     label_style=label_style2,
                      value_style=value_style2)
 
     assert table.data == [['header1', 'header2', 'header3'],
-                          [1, 2, 3], [None, 2, 4], [None, 3, 5], [None, 'total', 12],
-                          [2, 3, 4], [None, 4, 5], [None, 'total', 9], ['total', None, 21]]
+                          [1, 2, 3], [None, 2, 4], [None, 3, 5],
+                          [None, 'total', 12],
+                          [2, 3, 4], [None, 4, 5], [None, 'total', 9],
+                          ['total', None, 21]]
 
     assert id(table[4][1].style) == id(label_style)
     assert id(table[4][2].style) == id(value_style)
@@ -439,9 +467,11 @@ def test_write_excel_with_style():
     }, extend=table_style)
 
     table = Table(headers=[[('test', title_style), None, None],
-                           [('header1', header_style), ('header2', header_style),
+                           [('header1', header_style),
+                            ('header2', header_style),
                             ('header3', header_style)]],
-                  body=[[1, 2, 3], [1, 2, 4], [1, 3, 5], [2, 3, 4], [2, 4, 5]], style=table_style)
+                  body=[[1, 2, 3], [1, 2, 4], [1, 3, 5], [2, 3, 4], [2, 4, 5]],
+                  style=table_style)
 
     areas = table.select(ColumnSelector(column=1, group=True))
     areas.merge_all(style=merged_cell_style)
@@ -466,7 +496,8 @@ def test_write_excel_with_style():
 def test_auto_merge():
     table = Table(headers=[['test', None], ['header1', 'header2']],
                   body=[[1, 2], ])
-    assert list(table) == [[Cell('test', width=2), None], [Cell('header1'), Cell('header2')],
+    assert list(table) == [[Cell('test', width=2), None],
+                           [Cell('header1'), Cell('header2')],
                            [Cell(1), Cell(2)]]
 
 
@@ -522,10 +553,12 @@ def test_write_non_ascii_chracter_into_excel_with_style():
     areas = table.select(ColumnSelector(column=1, group=True))
     areas.merge_all()
     areas.add_summary_of_all(text_span=3, text='区域合计', location='left',
-                             label_style=left_total_label_style, value_style=left_total_value_style)
+                             label_style=left_total_label_style,
+                             value_style=left_total_value_style)
 
     table.add_summary(text_span=4, text='总合计', location='down',
-                      label_style=bottom_total_label_style, value_style=bottom_total_value_style)
+                      label_style=bottom_total_label_style,
+                      value_style=bottom_total_value_style)
 
     wb = Workbook()
     ws = wb.active
@@ -550,17 +583,20 @@ def test_merged_cell_2():
     areas = table.select(ColumnSelector(column=3, group=True))
     areas.merge_all()
 
-    cells = [[Cell('header1'), Cell('header2'), Cell('header3'), Cell('header4')],
-             [Cell(1, height=3), Cell(2, height=3), Cell(3, height=3), Cell(4)],
-             [None, None, None, Cell(5)],
-             [None, None, None, Cell(6)]]
+    cells = [
+        [Cell('header1'), Cell('header2'), Cell('header3'), Cell('header4')],
+        [Cell(1, height=3), Cell(2, height=3), Cell(3, height=3), Cell(4)],
+        [None, None, None, Cell(5)],
+        [None, None, None, Cell(6)]]
     assert cells == list(table)
 
 
 def test_merged_cell_3():
     table = Table(headers=[['header1', 'header2', 'header3', 'header4']],
-                  body=[[1, 2, 3, 5], [1, 2, 3, 9], [1, 2, 33, 6], [1, 2, 33, 1],
-                        [1, 22, 3, 2], [1, 22, 3, 4], [1, 22, 33, 3], [1, 22, 33, 2]])
+                  body=[[1, 2, 3, 5], [1, 2, 3, 9], [1, 2, 33, 6],
+                        [1, 2, 33, 1],
+                        [1, 22, 3, 2], [1, 22, 3, 4], [1, 22, 33, 3],
+                        [1, 22, 33, 2]])
     areas = table.select(ColumnSelector(column=1, group=True))
     areas.merge_all()
 
@@ -570,15 +606,16 @@ def test_merged_cell_3():
     areas = table.select(ColumnSelector(column=3, group=True))
     areas.merge_all()
 
-    cells = [[Cell('header1'), Cell('header2'), Cell('header3'), Cell('header4')],
-             [Cell(1, height=8), Cell(2, height=4), Cell(3, height=2), Cell(5)],
-             [None, None, None, Cell(9)],
-             [None, None, Cell(33, height=2), Cell(6)],
-             [None, None, None, Cell(1)],
-             [None, Cell(22, height=4), Cell(3, height=2), Cell(2)],
-             [None, None, None, Cell(4)],
-             [None, None, Cell(33, height=2), Cell(3)],
-             [None, None, None, Cell(2)]]
+    cells = [
+        [Cell('header1'), Cell('header2'), Cell('header3'), Cell('header4')],
+        [Cell(1, height=8), Cell(2, height=4), Cell(3, height=2), Cell(5)],
+        [None, None, None, Cell(9)],
+        [None, None, Cell(33, height=2), Cell(6)],
+        [None, None, None, Cell(1)],
+        [None, Cell(22, height=4), Cell(3, height=2), Cell(2)],
+        [None, None, None, Cell(4)],
+        [None, None, Cell(33, height=2), Cell(3)],
+        [None, None, None, Cell(2)]]
     assert cells == list(table)
 
 
