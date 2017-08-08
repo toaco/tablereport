@@ -5,6 +5,7 @@ from __future__ import unicode_literals
 from openpyxl import Workbook
 
 from tablereport import *
+from tablereport.shortcut import write_to_excel
 
 
 def test_table_initialize():
@@ -523,7 +524,7 @@ def test_excel_writer():
     ws.title = '报表'
     ws.sheet_properties.tabColor = "1072BA"
 
-    ExcelWriter.write(ws, table, (1, 1))
+    WorkSheetWriter.write(ws, table, (1, 1))
 
     wb.save('1.xlsx')
 
@@ -586,15 +587,7 @@ def test_write_excel_with_style():
                       label_style=bottom_total_label_style,
                       value_style=bottom_total_value_style)
 
-    wb = Workbook()
-    ws = wb.active
-    # must be unicode
-    ws.title = 'Report'
-    ws.sheet_properties.tabColor = "1072BA"
-
-    ExcelWriter.write(ws, table, (0, 0))
-
-    wb.save('2.xlsx')
+    write_to_excel('2.xlsx', table)
 
 
 def test_write_non_ascii_chracter_into_excel_with_style():
@@ -662,6 +655,6 @@ def test_write_non_ascii_chracter_into_excel_with_style():
     ws.title = '报表'
     ws.sheet_properties.tabColor = "1072BA"
 
-    ExcelWriter.write(ws, table, (0, 0))
+    WorkSheetWriter.write(ws, table, (0, 0))
 
     wb.save('3.xlsx')
