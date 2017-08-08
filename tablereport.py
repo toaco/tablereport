@@ -305,21 +305,24 @@ class ExcelWriter(object):
     def write(worksheet, table, position):
         row_height = [None] * table.height
         col_width = [None] * table.width
-
         x, y = position[0] + 1, position[1] + 1
+
         for row_num in xrange(table.height):
             for col_num in xrange(table.width):
                 cell = table[row_num][col_num]
-                excel_x = x + row_num
-                excel_y = y + col_num
+
                 if cell is None:
                     continue
-                # merged cell
+
+                excel_x = x + row_num
+                excel_y = y + col_num
+
                 if any([cell.height > 1, cell.width > 1]):
-                    worksheet.merge_cells(start_row=excel_x,
-                                          end_row=excel_x + cell.height - 1,
-                                          start_column=excel_y,
-                                          end_column=excel_y + cell.width - 1)
+                    worksheet.merge_cells(
+                        start_row=excel_x,
+                        end_row=excel_x + cell.height - 1,
+                        start_column=excel_y,
+                        end_column=excel_y + cell.width - 1)
 
                 excel_cell = worksheet.cell(row=excel_x, column=excel_y,
                                             value=cell.value)
@@ -382,6 +385,7 @@ class ExcelWriter(object):
                         if height == 'auto':
                             height = math.ceil(font_size * 1.5)
                         row_height[row_num] = max(height, row_height[row_num])
+
         for i, value in enumerate(row_height):
             if value is None:
                 pass
@@ -391,8 +395,8 @@ class ExcelWriter(object):
             if value is None:
                 pass
             else:
-                worksheet.column_dimensions[
-                    get_column_letter(i + 1)].width = value
+                column_letter = get_column_letter(i + 1)
+                worksheet.column_dimensions[column_letter].width = value
 
 
 class Style(object):
