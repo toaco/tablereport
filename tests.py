@@ -9,16 +9,19 @@ from tablereport import *
 
 def test_table_initialize():
     table = Table(
-        headers=[['test', None, None], ['header1', 'header2', 'header3']],
+        header=[['test', None, None], ['header1', 'header2', 'header3']],
         body=[[1, 2, 3], [4, 5, 6], [7, 8, 9]]
     )
 
     assert table.width == 3
     assert table.height == 5
+    assert list(table.header) == [['test', None, None],
+                                  ['header1', 'header2', 'header3']]
+    assert list(table.body) == [[1, 2, 3], [4, 5, 6], [7, 8, 9]]
 
 
 def test_initialize_table_with_empty_headers_and_empty_body():
-    table = Table(headers=[],
+    table = Table(header=[],
                   body=[])
 
     assert table.width == 0
@@ -36,9 +39,9 @@ def test_column_selector_select_right_area_of_area():
 
 
 def test_column_selector_select_right_area_of_table():
-    table = Table(headers=[['header1', 'header2', 'header3']],
+    table = Table(header=[['header1', 'header2', 'header3']],
                   body=[[1, 2, 3], [4, 5, 6], [7, 8, 9]])
-    sub_area = table.select(ColumnSelector(column=2, group=False)).one()
+    sub_area = table.body.select(ColumnSelector(column=2, group=False)).one()
 
     assert sub_area.height == 3
     assert sub_area.width == 1
@@ -46,18 +49,17 @@ def test_column_selector_select_right_area_of_table():
 
 
 def test_values_in_area_of_table_selected_by_column_selector():
-    # test_values_in_area_of_table_selected_by_column_selector
-    table = Table(headers=[['header1', 'header2', 'header3']],
+    table = Table(header=[['header1', 'header2', 'header3']],
                   body=[[1, 2, 3], [4, 5, 6], [7, 8, 9]])
-    area = table.select(ColumnSelector(column=2, group=False)).one()
+    area = table.body.select(ColumnSelector(column=2, group=False)).one()
 
     assert area.data == [[2], [5], [8]]
 
 
 def test_column_selector_could_group_selected_areas():
-    table = Table(headers=[['header1', 'header2', 'header3']],
+    table = Table(header=[['header1', 'header2', 'header3']],
                   body=[[1, 2, 3], [1, 2, 4], [1, 3, 5], [2, 3, 4]])
-    areas = table.select(ColumnSelector(column=1, group=True))
+    areas = table.body.select(ColumnSelector(column=1, group=True))
 
     assert len(areas) == 2
 
@@ -71,9 +73,9 @@ def test_column_selector_could_group_selected_areas():
 
 
 def test_modify_area_is_equivalent_to_modify_table():
-    table = Table(headers=[['header1', 'header2', 'header3']],
+    table = Table(header=[['header1', 'header2', 'header3']],
                   body=[[1, 2, 3], [4, 5, 6], [7, 8, 9]])
-    area = table.select(ColumnSelector(column=2, group=False)).one()
+    area = table.body.select(ColumnSelector(column=2, group=False)).one()
 
     # area.data == [[2], [5], [8]]
     area.data[0][0] = 3
@@ -94,7 +96,6 @@ def test_areas_is_list_like_object():
 
 
 def test_get_area_data():
-    """区域的data属性支持获取操作"""
     area = Table(body=[[1, 2, 3, ], [4, 5, 6], [7, 8, 9]])
     sub_area = area.select(ColumnSelector(column=2, group=False)).one()
 
@@ -106,7 +107,6 @@ def test_get_area_data():
 
 
 def test_set_area_data():
-    """区域的data属性支持设置操作"""
     area = Table(body=[[1, 2, 3, ], [4, 5, 6], [7, 8, 9]])
     sub_area = area.select(ColumnSelector(column=2, group=False)).one()
 
@@ -122,9 +122,9 @@ def test_set_area_data():
 
 
 def test_merge_areas_1():
-    table = Table(headers=[['header1', 'header2', 'header3']],
+    table = Table(header=[['header1', 'header2', 'header3']],
                   body=[[1, 2, 3], [1, 2, 4], [1, 3, 5], [2, 3, 4]])
-    areas = table.select(ColumnSelector(column=1, group=True))
+    areas = table.body.select(ColumnSelector(column=1, group=True))
     areas.merge()
 
     assert table.data == [['header1', 'header2', 'header3'],
@@ -132,9 +132,9 @@ def test_merge_areas_1():
 
 
 def test_merge_areas_2():
-    table = Table(headers=[['header1', 'header2', 'header3']],
+    table = Table(header=[['header1', 'header2', 'header3']],
                   body=[[1, 2, 3], [1, 2, 4], [1, 3, 5], [2, 3, 4], [2, 4, 5]])
-    areas = table.select(ColumnSelector(column=1, group=True))
+    areas = table.body.select(ColumnSelector(column=1, group=True))
     areas.merge()
 
     assert table.data == [['header1', 'header2', 'header3'],
@@ -143,9 +143,9 @@ def test_merge_areas_2():
 
 
 def test_add_summary_at_left_side_will_modify_table():
-    table = Table(headers=[['header1', 'header2', 'header3']],
+    table = Table(header=[['header1', 'header2', 'header3']],
                   body=[[1, 2, 3], [1, 2, 4], [1, 3, 5], [2, 3, 4], [2, 4, 5]])
-    areas = table.select(ColumnSelector(column=1, group=True))
+    areas = table.body.select(ColumnSelector(column=1, group=True))
     areas.merge()
 
     areas.add_summary(text_span=1, text='total', location='left')
@@ -157,9 +157,9 @@ def test_add_summary_at_left_side_will_modify_table():
 
 
 def test_add_summary_at_left_side_will_modify_areas():
-    table = Table(headers=[['header1', 'header2', 'header3']],
+    table = Table(header=[['header1', 'header2', 'header3']],
                   body=[[1, 2, 3], [1, 2, 4], [1, 3, 5], [2, 3, 4], [2, 4, 5]])
-    areas = table.select(ColumnSelector(column=1, group=True))
+    areas = table.body.select(ColumnSelector(column=1, group=True))
     areas.merge()
 
     areas.add_summary(text_span=2, text='total', location='down')
@@ -176,9 +176,9 @@ def test_add_summary_at_left_side_will_modify_areas():
 
 
 def test_add_summary_below_will_modify_table():
-    table = Table(headers=[['header1', 'header2', 'header3']],
+    table = Table(header=[['header1', 'header2', 'header3']],
                   body=[[1, 2, 3], [1, 2, 4], [1, 3, 5], [2, 3, 4], [2, 4, 5]])
-    areas = table.select(ColumnSelector(column=1, group=True))
+    areas = table.body.select(ColumnSelector(column=1, group=True))
     areas.merge()
 
     areas.add_summary(text_span=2, text='total', location='down')
@@ -190,7 +190,7 @@ def test_add_summary_below_will_modify_table():
 
 
 def test_add_summary_only_below_entire_table_will_modify_area():
-    table = Table(headers=[['header1', 'header2', 'header3']],
+    table = Table(header=[['header1', 'header2', 'header3']],
                   body=[[1, 2, 3], [1, 2, 4], [1, 3, 5], [2, 3, 4], [2, 4, 5]])
     area = Area(table, 3, 5, (1, 0))
     area.add_summary(text_span=2, text='total', location='down')
@@ -201,7 +201,7 @@ def test_add_summary_only_below_entire_table_will_modify_area():
 
 
 def test_add_summary_only_below_entire_table_will_modify_table():
-    table = Table(headers=[['header1', 'header2', 'header3']],
+    table = Table(header=[['header1', 'header2', 'header3']],
                   body=[[1, 2, 3], [1, 2, 4], [1, 3, 5], [2, 3, 4], [2, 4, 5]])
     area = Area(table, 3, 5, (1, 0))
     area.add_summary(text_span=2, text='total', location='down')
@@ -211,10 +211,10 @@ def test_add_summary_only_below_entire_table_will_modify_table():
 
 
 def test_add_nested_summary_will_modify_table():
-    table = Table(headers=[['header1', 'header2', 'header3']],
+    table = Table(header=[['header1', 'header2', 'header3']],
                   body=[[1, 2, 3], [1, 2, 4], [1, 3, 5], [2, 3, 4], [2, 4, 5]])
 
-    areas = table.select(ColumnSelector(column=1, group=True))
+    areas = table.body.select(ColumnSelector(column=1, group=True))
     areas.merge()
     areas.add_summary(text_span=1, text='total', location='left')
 
@@ -241,7 +241,7 @@ def test_each_elem_in_table_is_encapsulated_as_cell():
 
 
 def test_set_cell_width_when_initialize_table():
-    table = Table(headers=[['test', None], ['header1', 'header2']],
+    table = Table(header=[['test', None], ['header1', 'header2']],
                   body=[[1, 2], ])
     assert list(table) == [[Cell('test', width=2), None],
                            [Cell('header1'), Cell('header2')],
@@ -256,9 +256,9 @@ def test_iter_table_will_get_cell_list():
 
 
 def test_merge_area_will_modify_cell():
-    table = Table(headers=[['header1', 'header2']],
+    table = Table(header=[['header1', 'header2']],
                   body=[[1, 2], [1, 3], [2, 3]])
-    areas = table.select(ColumnSelector(column=1, group=True))
+    areas = table.body.select(ColumnSelector(column=1, group=True))
     areas.merge()
 
     cells = [[Cell('header1'), Cell('header2')], [Cell(1, height=2), Cell(2)],
@@ -268,15 +268,15 @@ def test_merge_area_will_modify_cell():
 
 
 def test_merge_areas_of_three_columns():
-    table = Table(headers=[['header1', 'header2', 'header3', 'header4']],
+    table = Table(header=[['header1', 'header2', 'header3', 'header4']],
                   body=[[1, 2, 3, 4], [1, 2, 3, 5], [1, 2, 3, 6]])
-    areas = table.select(ColumnSelector(column=1, group=True))
+    areas = table.body.select(ColumnSelector(column=1, group=True))
     areas.merge()
 
-    areas = table.select(ColumnSelector(column=2, group=True))
+    areas = table.body.select(ColumnSelector(column=2, group=True))
     areas.merge()
 
-    areas = table.select(ColumnSelector(column=3, group=True))
+    areas = table.body.select(ColumnSelector(column=3, group=True))
     areas.merge()
 
     cells = [
@@ -288,18 +288,18 @@ def test_merge_areas_of_three_columns():
 
 
 def test_merge_areas_of_three_columns_2():
-    table = Table(headers=[['header1', 'header2', 'header3', 'header4']],
+    table = Table(header=[['header1', 'header2', 'header3', 'header4']],
                   body=[[1, 2, 3, 5], [1, 2, 3, 9], [1, 2, 33, 6],
                         [1, 2, 33, 1],
                         [1, 22, 3, 2], [1, 22, 3, 4], [1, 22, 33, 3],
                         [1, 22, 33, 2]])
-    areas = table.select(ColumnSelector(column=1, group=True))
+    areas = table.body.select(ColumnSelector(column=1, group=True))
     areas.merge()
 
-    areas = table.select(ColumnSelector(column=2, group=True))
+    areas = table.body.select(ColumnSelector(column=2, group=True))
     areas.merge()
 
-    areas = table.select(ColumnSelector(column=3, group=True))
+    areas = table.body.select(ColumnSelector(column=3, group=True))
     areas.merge()
 
     cells = [
@@ -316,16 +316,15 @@ def test_merge_areas_of_three_columns_2():
 
 
 def test_merge_areas_of_three_columns_without_headers():
-    """不用headers也可以"""
-    table = Table(headers=[],
+    table = Table(header=[],
                   body=[[1, 2, 3, 4], [1, 2, 3, 5], [1, 2, 3, 6]])
-    areas = table.select(ColumnSelector(column=1, group=True))
+    areas = table.body.select(ColumnSelector(column=1, group=True))
     areas.merge()
 
-    areas = table.select(ColumnSelector(column=2, group=True))
+    areas = table.body.select(ColumnSelector(column=2, group=True))
     areas.merge()
 
-    areas = table.select(ColumnSelector(column=3, group=True))
+    areas = table.body.select(ColumnSelector(column=3, group=True))
     areas.merge()
 
     cells = [[Cell(1, height=3), Cell(2, height=3), Cell(3, height=3), Cell(4)],
@@ -335,10 +334,10 @@ def test_merge_areas_of_three_columns_without_headers():
 
 
 def test_add_nested_summary_will_modify_cell():
-    table = Table(headers=[['header1', 'header2', 'header3']],
+    table = Table(header=[['header1', 'header2', 'header3']],
                   body=[[1, 2, 3], [1, 2, 4], [1, 3, 5], [2, 3, 4], [2, 4, 5]])
 
-    areas = table.select(ColumnSelector(column=1, group=True))
+    areas = table.body.select(ColumnSelector(column=1, group=True))
     areas.merge()
     areas.add_summary(text_span=1, text='total', location='left')
 
@@ -358,7 +357,7 @@ def test_add_nested_summary_will_modify_cell():
 
 def test_add_nested_summary_will_modify_cell_2():
     table = Table(
-        headers=[
+        header=[
             ['燃气销售报表', None, None, None, None, None, None],
             ['用气区域', '用气性质', '单价', '表具类型', '地址数', '发行气量', '发行应收']
         ],
@@ -372,7 +371,7 @@ def test_add_nested_summary_will_modify_cell_2():
         ]
     )
 
-    areas = table.select(ColumnSelector(column=1, group=True))
+    areas = table.body.select(ColumnSelector(column=1, group=True))
     areas.merge()
     areas.add_summary(text_span=3, text='区域合计', location='left')
 
@@ -416,7 +415,7 @@ def test_add_nested_summary_will_modify_cell_2():
 def test_set_global_style_on_table():
     style = {}
     table = Table(
-        headers=[['test', None, None], ['header1', 'header2', 'header3']],
+        header=[['test', None, None], ['header1', 'header2', 'header3']],
         body=[[1, 2, 3], [4, 5, 6], [7, 8, 9]],
         style=style
     )
@@ -431,11 +430,28 @@ def test_set_style_of_headers():
     table_style = Style()
     title_style = Style()
     header_style = Style()
-    table = Table(headers=[[('test', title_style), None, None],
-                           [('header1', header_style),
-                            ('header2', header_style),
-                            ('header3', header_style)]],
+    table = Table(header=[[('test', title_style), None, None],
+                          [('header1', header_style),
+                           ('header2', header_style),
+                           ('header3', header_style)]],
                   body=[[1, 2, 3], [4, 5, 6], [7, 8, 9]], style=table_style)
+
+    assert id(table[0][0].style) == id(title_style)
+    assert id(table[1][0].style) == id(header_style)
+    assert id(table[1][1].style) == id(header_style)
+    assert id(table[1][2].style) == id(header_style)
+    assert id(table[2][0].style) == id(table_style)
+
+
+def test_set_style_of_headers_by_method():
+    table_style = Style()
+    title_style = Style()
+    header_style = Style()
+    table = Table(header=[['test', None, None],
+                          ['header1', 'header2', 'header3']],
+                  body=[[1, 2, 3], [4, 5, 6], [7, 8, 9]], style=table_style)
+    table.header[0].set_style(title_style)
+    table.header[1].set_style(header_style)
 
     assert id(table[0][0].style) == id(title_style)
     assert id(table[1][0].style) == id(header_style)
@@ -446,9 +462,9 @@ def test_set_style_of_headers():
 
 def test_set_merged_areas_style():
     style = {}
-    table = Table(headers=[['header1', 'header2', 'header3']],
+    table = Table(header=[['header1', 'header2', 'header3']],
                   body=[[1, 2, 3], [1, 2, 4], [1, 3, 5], [2, 3, 4], [2, 4, 5]])
-    areas = table.select(ColumnSelector(column=1, group=True))
+    areas = table.body.select(ColumnSelector(column=1, group=True))
     areas.merge(style=style)
 
     assert id(table[1][0].style) == id(style)
@@ -457,7 +473,7 @@ def test_set_merged_areas_style():
 
 
 def test_set_summary_style():
-    table = Table(headers=[['header1', 'header2', 'header3']],
+    table = Table(header=[['header1', 'header2', 'header3']],
                   body=[[1, 2, 3], [1, 2, 4], [1, 3, 5], [2, 3, 4], [2, 4, 5]])
 
     label_style = Style()
@@ -465,7 +481,7 @@ def test_set_summary_style():
     label_style2 = Style()
     value_style2 = Style()
 
-    areas = table.select(ColumnSelector(column=1, group=True))
+    areas = table.body.select(ColumnSelector(column=1, group=True))
     areas.merge()
     areas.add_summary(text_span=1, text='total', location='left',
                       label_style=label_style,
@@ -491,10 +507,10 @@ def test_set_summary_style():
 
 
 def test_excel_writer():
-    table = Table(headers=[['header1', 'header2', 'header3']],
+    table = Table(header=[['header1', 'header2', 'header3']],
                   body=[[1, 2, 3], [1, 2, 4], [1, 3, 5], [2, 3, 4], [2, 4, 5]])
 
-    areas = table.select(ColumnSelector(column=1, group=True))
+    areas = table.body.select(ColumnSelector(column=1, group=True))
     areas.merge()
     areas.add_summary(text_span=1, text='total', location='left')
 
@@ -523,47 +539,57 @@ def test_write_excel_with_style():
     })
 
     title_style = Style({
-        'font_weight': 'blod',
-        'font_size': 20,
-        'background_color': 'FF6495ED',
+        'font_size': 15,
+        'background_color': 'FF87CEFA',
+        'font_weight': 'blod'
     }, extend=table_style)
 
     header_style = Style({
-        'font_weight': 'blod',
-        'font_size': 15,
         'background_color': 'FF87CEFA',
     }, extend=table_style)
 
-    merged_cell_style = Style(extend=table_style)
-
     left_total_label_style = Style({
-        'background_color': 'FFE1FFFF',
+        'background_color': 'fff0f0f0',
+    }, extend=table_style)
+
+    left_total_value_style = Style({
+        'background_color': 'fff0f0f0',
     }, extend=table_style)
 
     bottom_total_label_style = Style({
-        'background_color': 'FFF0E68C',
+        'background_color': 'ffe6e6e6',
     }, extend=table_style)
 
-    table = Table(headers=[[('test', title_style), None, None],
-                           [('header1', header_style),
-                            ('header2', header_style),
-                            ('header3', header_style)]],
-                  body=[[1, 2, 3], [1, 2, 4], [1, 3, 5], [2, 3, 4], [2, 4, 5]],
+    bottom_total_value_style = Style({
+        'background_color': 'ffe6e6e6',
+    }, extend=table_style)
+
+    table = Table(header=[[('TEST', title_style), None, None, None],
+                          [('HEADER1', header_style),
+                           ('HEADER2', header_style),
+                           ('HEADER3', header_style),
+                           ('HEADER4', header_style)]],
+                  body=[['One', 'A', 1, 2], ['One', 'A', 2, 3],
+                        ['One', 'B', 3, 4], ['Two', 'A', 1, 2],
+                        ['Two', 'B', 2, 3]],
                   style=table_style)
+    table.header[0].set_style(title_style)
+    table.header[1].set_style(header_style)
 
-    areas = table.select(ColumnSelector(column=1, group=True))
-    areas.merge(style=merged_cell_style)
-    areas.add_summary(text_span=1, text='total', location='left',
-                      label_style=left_total_label_style)
+    areas = table.body.select(ColumnSelector(column=1, group=True))
+    areas.merge()
+    areas.add_summary(text_span=1, text='Total', location='left',
+                      label_style=left_total_label_style,
+                      value_style=left_total_value_style)
 
-    area = Area(table, 3, 7, (2, 0))
-    area.add_summary(text_span=2, text='total', location='down',
-                     label_style=bottom_total_label_style)
+    table.add_summary(text_span=2, text='Total', location='down',
+                      label_style=bottom_total_label_style,
+                      value_style=bottom_total_value_style)
 
     wb = Workbook()
     ws = wb.active
     # must be unicode
-    ws.title = '报表'
+    ws.title = 'Report'
     ws.sheet_properties.tabColor = "1072BA"
 
     ExcelWriter.write(ws, table, (0, 0))
@@ -605,11 +631,9 @@ def test_write_non_ascii_chracter_into_excel_with_style():
         'background_color': 'ffe6e6e6',
     }, extend=table_style)
 
-    table = Table(headers=[
-        [('燃气销售报表', title_style), None, None, None, None, None, None],
-        [('用气区域', header_style), ('用气性质', header_style), ('单价', header_style),
-         ('表具类型', header_style), ('地址数', header_style), ('发行气量', header_style),
-         ('发行应收', header_style)]
+    table = Table(header=[
+        ['燃气销售报表', None, None, None, None, None, None],
+        ['用气区域', '用气性质', '单价', '表具类型', '地址数', '发行气量', '发行应收']
     ],
         body=[
             ['歆茗', '商业用气', 1.3, '普表', 10, 12, 34],
@@ -619,8 +643,10 @@ def test_write_non_ascii_chracter_into_excel_with_style():
             ['授保', '居民用气', 1.7, 'IC卡表', 26, 10, 52],
             ['授保', '居民用气', 1.8, 'IC卡表', 16, 25, 12],
         ], style=table_style)
+    table.header[0].set_style(title_style)
+    table.header[1].set_style(header_style)
 
-    areas = table.select(ColumnSelector(column=1, group=True))
+    areas = table.body.select(ColumnSelector(column=1, group=True))
     areas.merge()
     areas.add_summary(text_span=3, text='区域合计', location='left',
                       label_style=left_total_label_style,

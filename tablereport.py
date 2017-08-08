@@ -59,6 +59,11 @@ class Area(object):
             rows.append(row)
         return rows
 
+    def select(self, selector):
+        # select an area in self
+        area = selector.select(self)
+        return area
+
     def merge(self, style=None):
         cell = self.data[0][0]
 
@@ -86,6 +91,12 @@ class Area(object):
         self._update_existed_areas(new_col_num)
 
         self.table.height += 1
+
+    def set_style(self, style):
+        for row in self.data:
+            for cell in row:
+                if cell:
+                    cell.style = style
 
     def _update_existed_areas(self, new_col_num):
         for area in self.table.areas:
@@ -127,44 +138,42 @@ class Area(object):
         self.table.total_row_nums.add(new_col_num)
         return new_col_num
 
-    def select(self, selector):
-        # select an area in self
-        area = selector.select(self)
-        return area
-
     def __getitem__(self, item):
-        return self.table.data[item]
+        if item == self.height:
+            raise IndexError
+        return Row(self.table, (self._x + item, self._y), self.width)
 
     def __setitem__(self, key, value):
-        self.table.data[key] = value
+        if key == self.height:
+            raise IndexError
+        self.table.data[key + self._x] = value
 
 
 class Table(object):
-    def __init__(self, headers=None, body=None, style=None):
+    def __init__(self, header=None, body=None, style=None):
 
-        if headers is None:
-            headers = []
+        if header is None:
+            header = []
 
         if body is None:
             body = []
 
-        self.headers = headers
-        self.body = body
+        self._header_data = header
+        self._body_data = body
+        self._data = self._header_data + self._body_data
 
-        self.table = self.headers + self.body
-        data = self.table
-
-        for row_num in xrange(len(data)):
-            for col_num in xrange(len(data[0])):
-                cell = data[row_num][col_num]
+        for row_num in xrange(len(self._data)):
+            for col_num in xrange(len(self._data[0])):
+                cell = self._data[row_num][col_num]
                 if cell is not None:
                     if isinstance(cell, tuple):
-                        data[row_num][col_num] = Cell(cell[0], style=cell[1])
+                        self._data[row_num][col_num] = Cell(cell[0],
+                                                            style=cell[1])
                     else:
-                        data[row_num][col_num] = Cell(data[row_num][col_num],
-                                                      style=style)
-                    self._auto_merge(data, row_num, col_num)
-        self._data = data
+                        self._data[row_num][col_num] = Cell(
+                            self._data[row_num][col_num],
+                            style=style)
+                    self._auto_merge(self._data, row_num, col_num)
         self.areas = []
         self.total_row_nums = set()
         try:
@@ -175,6 +184,16 @@ class Table(object):
         self.width = width
         self.height = len(self._data)
         self.style = style
+        self.header = Area(table=self, width=self.width,
+                           height=len(self._header_data),
+                           position=(0, 0))
+        self.body = Area(table=self, width=self.width,
+                         height=len(self._body_data),
+                         position=(len(self._header_data), 0))
+
+    @property
+    def data(self):
+        return self._data
 
     def __getitem__(self, item):
         return self._data[item]
@@ -182,9 +201,17 @@ class Table(object):
     def __setitem__(self, key, value):
         self._data[key] = value
 
-    @property
-    def data(self):
-        return self._data
+    def select(self, selector):
+        # select an area in self
+        table = Area(table=self, width=self.width, height=self.height,
+                     position=(0, 0))
+        areas = selector.select(table)
+        return areas
+
+    def add_summary(self, text_span, text, location, label_style=None,
+                    value_style=None):
+        self.body.add_summary(text_span, text, location, label_style,
+                              value_style)
 
     @staticmethod
     def _auto_merge(data, row_num, col_num):
@@ -201,21 +228,6 @@ class Table(object):
             else:
                 break
 
-    def select(self, selector):
-        # select an area in self
-        sub_area = Area(table=self, width=self.width, height=len(self.body),
-                        position=(len(self.headers), 0))
-        areas = selector.select(sub_area)
-        return areas
-
-    def add_summary(self, text_span, text, location, label_style=None,
-                    value_style=None):
-        # todo width and height should auto change
-        body = Area(table=self, width=self.width,
-                    height=len(self.data) - len(self.headers),
-                    position=(len(self.headers), 0))
-        body.add_summary(text_span, text, location, label_style, value_style)
-
 
 class Row(object):
     def __init__(self, table, position, width):
@@ -231,6 +243,10 @@ class Row(object):
         assert col < self.width
         self.table[self.x][self.y + col] = value
 
+    def __iter__(self):
+        for i in xrange(self.width):
+            yield self.table[self.x][self.y + i]
+
     def __eq__(self, iterable):
         return all(self[i] == iterable[i] for i in xrange(self.width))
 
@@ -239,6 +255,11 @@ class Row(object):
 
     def __repr__(self):
         return str([self[i] for i in xrange(self.width)])
+
+    def set_style(self, style):
+        for cell in self:
+            if cell:
+                cell.style = style
 
 
 class Cell(object):
