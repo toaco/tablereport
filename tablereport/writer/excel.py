@@ -1,5 +1,6 @@
 import math
 
+import six
 from openpyxl.styles import Alignment, Side, Border, Font, PatternFill
 from openpyxl.utils import get_column_letter
 
@@ -11,8 +12,8 @@ class WorkSheetWriter(object):
         col_width = [None] * table.width
         x, y = position[0] + 1, position[1] + 1
 
-        for row_num in xrange(table.height):
-            for col_num in xrange(table.width):
+        for row_num in range(table.height):
+            for col_num in range(table.width):
                 cell = table[row_num][col_num]
 
                 if cell is None:
@@ -73,22 +74,25 @@ class WorkSheetWriter(object):
                     if width is not None:
                         if width == 'auto':
                             width = (len(
-                                unicode(cell.value).encode('utf-8')) + len(
-                                unicode(cell.value))) / 2 * math.ceil(
-                                font_size / 11.0)
-                        col_width[col_num] = max(width, col_width[col_num])
+                                six.text_type(cell.value).encode('utf-8'))
+                                     + len(six.text_type(cell.value))
+                                     ) / 2 * math.ceil(font_size / 11.0)
+                        col_width[col_num] = max(width, col_width[col_num],
+                                                 key=lambda v: v or 0)
 
                     height = cell.style.get('height')
                     if height is not None:
                         if height == 'auto':
                             height = math.ceil(font_size * 1.5)
-                        row_height[row_num] = max(height, row_height[row_num])
+                        row_height[row_num] = max(height, row_height[row_num],
+                                                  key=lambda v: v or 0)
                 else:
                     height = cell.style.get('height')
                     if height is not None:
                         if height == 'auto':
                             height = math.ceil(font_size * 1.5)
-                        row_height[row_num] = max(height, row_height[row_num])
+                        row_height[row_num] = max(height, row_height[row_num],
+                                                  key=lambda v: v or 0)
 
         for i, value in enumerate(row_height):
             if value is None:

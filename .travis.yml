@@ -14,6 +14,18 @@ matrix:
       sudo: false
       python: '3.3'
     - os: linux
+      dist: trusty
+      sudo: false
+      python: '3.4'
+    - os: linux
+      dist: trusty
+      sudo: false
+      python: '3.5'
+    - os: linux
+      dist: trusty
+      sudo: false
+      python: '3.6'
+    - os: linux
       sudo: false
       python: pypy
     - os: linux

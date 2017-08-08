@@ -1,6 +1,6 @@
 from openpyxl import Workbook
 
-from writer import WorkSheetWriter
+from .writer import WorkSheetWriter
 
 
 def write_to_excel(filename, table, position=(0, 0)):

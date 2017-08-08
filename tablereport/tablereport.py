@@ -48,7 +48,7 @@ class Area(object):
     @property
     def data(self):
         rows = []
-        for row_num in xrange(self.height):
+        for row_num in range(self.height):
             position = self._x + row_num, self._y
             row = Row(self.table, position, self.width)
             rows.append(row)
@@ -62,8 +62,8 @@ class Area(object):
     def merge(self, style=None):
         cell = self.data[0][0]
 
-        for row in xrange(len(self.data)):
-            for col in xrange(len(self.data[0])):
+        for row in range(len(self.data)):
+            for col in range(len(self.data[0])):
                 self.data[row][col] = None
         cell.height = len(self.data)
         if style is not None:
@@ -118,10 +118,10 @@ class Area(object):
                 appended_row[self._y + offset].style = label_style
 
         # summarize columns need to be summarized
-        for col_num in xrange(self._y + offset + text_span,
-                              self.table.width):
+        for col_num in range(self._y + offset + text_span,
+                             self.table.width):
             total = 0
-            for row_num in xrange(self._x, self._x + self.height):
+            for row_num in range(self._x, self._x + self.height):
                 if row_num in self.table.total_row_nums:
                     continue
                 total += self.table[row_num][col_num].value
@@ -157,8 +157,8 @@ class Table(object):
         self._body_data = body
         self._data = self._header_data + self._body_data
 
-        for row_num in xrange(len(self._data)):
-            for col_num in xrange(len(self._data[0])):
+        for row_num in range(len(self._data)):
+            for col_num in range(len(self._data[0])):
                 cell = self._data[row_num][col_num]
                 if cell is not None:
                     if isinstance(cell, tuple):
@@ -211,13 +211,13 @@ class Table(object):
     @staticmethod
     def _auto_merge(data, row_num, col_num):
         # todo: range judge
-        for i in xrange(row_num + 1, len(data)):
+        for i in range(row_num + 1, len(data)):
             if data[i][col_num] is None:
                 data[row_num][col_num].height += 1
             else:
                 break
 
-        for j in xrange(col_num + 1, len(data[0])):
+        for j in range(col_num + 1, len(data[0])):
             if data[row_num][j] is None:
                 data[row_num][col_num].width += 1
             else:
@@ -239,17 +239,17 @@ class Row(object):
         self.table[self.x][self.y + col] = value
 
     def __iter__(self):
-        for i in xrange(self.width):
+        for i in range(self.width):
             yield self.table[self.x][self.y + i]
 
     def __eq__(self, iterable):
-        return all(self[i] == iterable[i] for i in xrange(self.width))
+        return all(self[i] == iterable[i] for i in range(self.width))
 
     def __len__(self):
         return self.width
 
     def __repr__(self):
-        return str([self[i] for i in xrange(self.width)])
+        return str([self[i] for i in range(self.width)])
 
     def set_style(self, style):
         for cell in self:
@@ -298,7 +298,7 @@ class ColumnSelector:
         else:
             start_value = area.data[0][0]
             start_index = 0
-            for row_num in xrange(1, len(area.data)):
+            for row_num in range(1, len(area.data)):
                 if area.data[row_num][0] == start_value:
                     continue
                 else:
