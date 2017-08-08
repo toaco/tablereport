@@ -163,7 +163,7 @@ def test_add_summary_at_left_side_will_modify_areas():
     areas = table.body.select(ColumnSelector(column=1, group=True))
     areas.merge()
 
-    areas.add_summary(text_span=2, text='total', location='down')
+    areas.add_summary(text_span=2, text='total', location='bottom')
 
     area1 = areas[0]
     assert area1.width == 1
@@ -182,7 +182,7 @@ def test_add_summary_below_will_modify_table():
     areas = table.body.select(ColumnSelector(column=1, group=True))
     areas.merge()
 
-    areas.add_summary(text_span=2, text='total', location='down')
+    areas.add_summary(text_span=2, text='total', location='bottom')
 
     assert table.data == [['header1', 'header2', 'header3'],
                           [1, 2, 3], [None, 2, 4], [None, 3, 5],
@@ -194,7 +194,7 @@ def test_add_summary_only_below_entire_table_will_modify_area():
     table = Table(header=[['header1', 'header2', 'header3']],
                   body=[[1, 2, 3], [1, 2, 4], [1, 3, 5], [2, 3, 4], [2, 4, 5]])
     area = Area(table, 3, 5, (1, 0))
-    area.add_summary(text_span=2, text='total', location='down')
+    area.add_summary(text_span=2, text='total', location='bottom')
 
     assert area.width == 3
     assert area.height == 6
@@ -205,7 +205,7 @@ def test_add_summary_only_below_entire_table_will_modify_table():
     table = Table(header=[['header1', 'header2', 'header3']],
                   body=[[1, 2, 3], [1, 2, 4], [1, 3, 5], [2, 3, 4], [2, 4, 5]])
     area = Area(table, 3, 5, (1, 0))
-    area.add_summary(text_span=2, text='total', location='down')
+    area.add_summary(text_span=2, text='total', location='bottom')
 
     assert area.data == [[1, 2, 3], [1, 2, 4], [1, 3, 5], [2, 3, 4], [2, 4, 5],
                          ['total', None, 21]]
@@ -220,7 +220,7 @@ def test_add_nested_summary_will_modify_table():
     areas.add_summary(text_span=1, text='total', location='left')
 
     area = Area(table, 3, 7, (1, 0))
-    area.add_summary(text_span=2, text='total', location='down')
+    area.add_summary(text_span=2, text='total', location='bottom')
 
     assert table.data == [['header1', 'header2', 'header3'],
                           [1, 2, 3], [None, 2, 4], [None, 3, 5],
@@ -343,7 +343,7 @@ def test_add_nested_summary_will_modify_cell():
     areas.add_summary(text_span=1, text='total', location='left')
 
     area = Area(table, 3, 7, (1, 0))
-    area.add_summary(text_span=2, text='total', location='down')
+    area.add_summary(text_span=2, text='total', location='bottom')
 
     assert list(table) == [[Cell('header1'), Cell('header2'), Cell('header3')],
                            [Cell(1, height=4), Cell(2), Cell(3)],
@@ -376,7 +376,7 @@ def test_add_nested_summary_will_modify_cell_2():
     areas.merge()
     areas.add_summary(text_span=3, text='区域合计', location='left')
 
-    table.add_summary(text_span=4, text='总合计', location='down')
+    table.add_summary(text_span=4, text='总合计', location='bottom')
 
     assert list(table) == [
         [Cell(value="燃气销售报表", width=7, ), None, None, None, None, None, None],
@@ -489,7 +489,7 @@ def test_set_summary_style():
                       value_style=value_style)
 
     area = Area(table, 3, 7, (1, 0))
-    area.add_summary(text_span=2, text='total', location='down',
+    area.add_summary(text_span=2, text='total', location='bottom',
                      label_style=label_style2,
                      value_style=value_style2)
 
@@ -516,7 +516,7 @@ def test_excel_writer():
     areas.add_summary(text_span=1, text='total', location='left')
 
     area = Area(table, 3, 7, (1, 0))
-    area.add_summary(text_span=2, text='total', location='down')
+    area.add_summary(text_span=2, text='total', location='bottom')
 
     wb = Workbook()
     ws = wb.active
@@ -583,7 +583,7 @@ def test_write_excel_with_style():
                       label_style=left_total_label_style,
                       value_style=left_total_value_style)
 
-    table.add_summary(text_span=2, text='Total', location='down',
+    table.add_summary(text_span=2, text='Total', location='bottom',
                       label_style=bottom_total_label_style,
                       value_style=bottom_total_value_style)
 
@@ -645,7 +645,7 @@ def test_write_non_ascii_chracter_into_excel_with_style():
                       label_style=left_total_label_style,
                       value_style=left_total_value_style)
 
-    table.add_summary(text_span=4, text='总合计', location='down',
+    table.add_summary(text_span=4, text='总合计', location='bottom',
                       label_style=bottom_total_label_style,
                       value_style=bottom_total_value_style)
 

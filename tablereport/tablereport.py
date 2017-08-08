@@ -78,7 +78,7 @@ class Area(object):
             cell.height += 1
             new_col_num = self._add_row_at_bottom(
                 label_style, text, text_span, value_style, self.width)
-        elif location == 'down':
+        elif location == 'bottom':
             new_col_num = self._add_row_at_bottom(
                 label_style, text, text_span, value_style, offset=0)
         else:
