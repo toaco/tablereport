@@ -31,11 +31,6 @@ class Areas(list):
 
 
 class Area(object):
-    """
-    .. py:attribute: width 
-    
-    """
-
     def __init__(self, table, width, height, position, style=None):
         self.table = table
         self.table.areas.append(self)
@@ -43,16 +38,23 @@ class Area(object):
         self.width = width
         self.height = height
 
-        self.position = position
-        self.x, self.y = position
+        self._x, self._y = position
 
         self.style = style
+
+    @property
+    def position(self):
+        return self._x, self._y
+
+    @position.setter
+    def position(self, value):
+        self._x, self._y = value
 
     @property
     def data(self):
         rows = []
         for row_num in xrange(self.height):
-            position = self.x + row_num, self.y
+            position = self._x + row_num, self._y
             row = Row(self.table, position, self.width)
             rows.append(row)
         return rows
@@ -74,85 +76,62 @@ class Area(object):
         if location == 'left':
             cell = self.data[0][0]
             cell.height += 1
-
-            new_col_num = self.x + self.height
-            self.table._data.insert(new_col_num,
-                                       [None] * self.table.width)
-            appended_row = self.table[new_col_num]
-
-            # calculate total value
-            if text_span != 0:
-                appended_row[self.y + self.width] = Cell(text, width=text_span)
-                if label_style is not None:
-                    appended_row[self.y + self.width].style = label_style
-            for col_num in xrange(self.y + self.width + text_span,
-                                  self.table.width):
-                total = 0
-                for row_num in xrange(self.x, self.x + self.height):
-                    if row_num in self.table.total_row_nums:
-                        continue
-                    total += self.table[row_num][col_num].value
-                appended_row[col_num] = Cell(total)
-                if value_style is not None:
-                    appended_row[col_num].style = value_style
-                else:
-                    appended_row[col_num].style = self.table.style
-
-            self.table.total_row_nums.add(new_col_num)
-
-            # update area attribute
-            for area in self.table.areas:
-                if new_col_num > area.position[0] + area.height:
-                    continue
-                elif area.position[0] + area.height >= new_col_num > \
-                        area.position[0]:
-                    area.height += 1
-                else:
-                    area.position = area.position[0] + 1, area.position[1]
-                    area.x += 1
+            new_col_num = self._add_row_at_bottom(
+                label_style, text, text_span, value_style, self.width)
         elif location == 'down':
-            new_col_num = self.x + self.height
-            self.table._data.insert(new_col_num,
-                                       [None] * self.table.width)
-            appended_row = self.table[new_col_num]
-
-            # calculate total value
-            if text_span != 0:
-                appended_row[self.y] = Cell(text, width=text_span)
-                if label_style is not None:
-                    appended_row[self.y].style = label_style
-            for col_num in xrange(self.y + text_span, self.table.width):
-                total = 0
-                for row_num in xrange(self.x, self.x + self.height):
-                    if row_num in self.table.total_row_nums:
-                        continue
-                    total += self.table[row_num][col_num].value
-                appended_row[col_num] = Cell(total)
-                if value_style is not None:
-                    appended_row[col_num].style = value_style
-                else:
-                    appended_row[col_num].style = self.table.style
-            self.table.total_row_nums.add(new_col_num)
-
-            # update area attribute
-            for area in self.table.areas:
-                if new_col_num > area.position[0] + area.height:
-                    continue
-                elif area.position[0] + area.height >= new_col_num > \
-                        area.position[0]:
-                    area.height += 1
-                else:
-                    area.position = area.position[0] + 1, area.position[1]
-                    area.x += 1
+            new_col_num = self._add_row_at_bottom(
+                label_style, text, text_span, value_style, offset=0)
         else:
             raise ValueError
+        self._update_existed_areas(new_col_num)
+
+        self.table.height += 1
+
+    def _update_existed_areas(self, new_col_num):
+        for area in self.table.areas:
+            x, y = area.position
+            if new_col_num > x + area.height:
+                continue
+            elif x + area.height >= new_col_num > x:
+                area.height += 1
+            else:
+                x += 1
+                area.position = x, y
+
+    def _add_row_at_bottom(self, label_style, text, text_span, value_style,
+                           offset=0):
+        new_col_num = self._x + self.height
+        self.table.data.insert(new_col_num,
+                               [None] * self.table.width)
+        appended_row = self.table[new_col_num]
+
+        # set summary cell
+        if text_span != 0:
+            appended_row[self._y + offset] = Cell(text, width=text_span)
+            if label_style is not None:
+                appended_row[self._y + offset].style = label_style
+
+        # summarize columns need to be summarized
+        for col_num in xrange(self._y + offset + text_span,
+                              self.table.width):
+            total = 0
+            for row_num in xrange(self._x, self._x + self.height):
+                if row_num in self.table.total_row_nums:
+                    continue
+                total += self.table[row_num][col_num].value
+            appended_row[col_num] = Cell(total)
+            if value_style is not None:
+                appended_row[col_num].style = value_style
+            else:
+                appended_row[col_num].style = self.table.style
+        self.table.total_row_nums.add(new_col_num)
+        return new_col_num
 
     def select(self, selector):
         # select an area in self
         area = selector.select(self)
         return area
 
-    # 没有该方法一样可迭代，根据的是__getitem__
     def __getitem__(self, item):
         return self.table.data[item]
 
@@ -197,7 +176,6 @@ class Table(object):
         self.height = len(self._data)
         self.style = style
 
-    # 没有该方法一样可迭代，根据的是__getitem__
     def __getitem__(self, item):
         return self._data[item]
 
@@ -234,7 +212,7 @@ class Table(object):
                     value_style=None):
         # todo width and height should auto change
         body = Area(table=self, width=self.width,
-                    height=len(self.data)- len(self.headers),
+                    height=len(self.data) - len(self.headers),
                     position=(len(self.headers), 0))
         body.add_summary(text_span, text, location, label_style, value_style)
 
@@ -242,7 +220,6 @@ class Table(object):
 class Row(object):
     def __init__(self, table, position, width):
         self.table = table
-        self.position = position
         self.x, self.y = position
         self.width = width
 
@@ -279,14 +256,9 @@ class Cell(object):
             return self.value == other
 
     def __repr__(self):
-        if isinstance(self.value, (str, unicode)):
-            return 'Cell(value="{}", style={}, width={}, height={})' \
-                .format(self.value, self.style, self.width,
-                        self.height, ).encode('utf-8')
-        else:
-            return 'Cell(value={}, style={}, width={}, height={})' \
-                .format(self.value, self.style, self.width, self.height).encode(
-                'utf-8')
+        return ('Cell(value="{}", style={}, width={}, height={})'
+                .format(repr(self.value), self.style, self.width, self.height)
+                .encode('utf-8'))
 
     __str__ = __repr__
 
@@ -328,50 +300,9 @@ class ColumnSelector:
         return areas
 
 
-class TableMaker:
-    def __init__(self, data, title=''):
-        if isinstance(data, list):
-            row1 = data[0]
-            self.headers = row1.keys()
-            self.data = []
-            for row in data:
-                tmp_row = []
-                for header in self.headers:
-                    value = row[header]
-                    if isinstance(value, str):
-                        value = unicode(value)
-                    tmp_row.append(value)
-                self.data.append(tmp_row)
-
-            self.table = [self.headers]
-            self.table.extend(self.data)
-            self.title = title.encode('utf-8')
-
-    def __str__(self):
-        return str(self.table)
-
-    def show(self):
-        # non-ascii character cause wrong align
-        from prettytable import PrettyTable
-        x = PrettyTable(self.headers)
-        for row in self.data:
-            x.append_row(row)
-        print x
-
-
-class AreaStyle:
-    border = None
-    background = None
-    font = None
-    layout = None
-
-    def __init__(self):
-        pass
-
-
 class ExcelWriter(object):
     @staticmethod
-    def wrtie(worksheet, table, position):
+    def write(worksheet, table, position):
         row_height = [None] * table.height
         col_width = [None] * table.width
 
@@ -429,7 +360,6 @@ class ExcelWriter(object):
                 border.bottom = side
                 excel_cell.border = border
 
-                # 合并了的单元格需要自己设置高度之类的
                 if all([cell.height == 1, cell.width == 1]):
                     font_size = font_size or 11
                     width = cell.style.get('width')
@@ -456,7 +386,6 @@ class ExcelWriter(object):
             if value is None:
                 pass
             else:
-                print value
                 worksheet.row_dimensions[i + 1].height = value
         for i, value in enumerate(col_width):
             if value is None:

@@ -227,6 +227,9 @@ def test_add_nested_summary_will_modify_table():
                           [2, 3, 4], [None, 4, 5], [None, 'total', 9],
                           ['total', None, 21]]
 
+    assert table.width == 3
+    assert table.height == 9
+
 
 def test_each_elem_in_table_is_encapsulated_as_cell():
     table = Table(body=[[1, 2, ], [4, 5, ]])
@@ -373,18 +376,7 @@ def test_add_nested_summary_will_modify_cell_2():
     areas.merge()
     areas.add_summary(text_span=3, text='区域合计', location='left')
 
-    print list(table)
-    print len(table.data)
-    for i in table:
-        print i
-
-
     table.add_summary(text_span=4, text='总合计', location='down')
-
-    print list(table)
-    print len(table.data)
-    for i in table:
-        print i
 
     assert list(table) == [
         [Cell(value="燃气销售报表", width=7, ), None, None, None, None, None, None],
@@ -515,7 +507,7 @@ def test_excel_writer():
     ws.title = '报表'
     ws.sheet_properties.tabColor = "1072BA"
 
-    ExcelWriter.wrtie(ws, table, (1, 1))
+    ExcelWriter.write(ws, table, (1, 1))
 
     wb.save('1.xlsx')
 
@@ -574,7 +566,7 @@ def test_write_excel_with_style():
     ws.title = '报表'
     ws.sheet_properties.tabColor = "1072BA"
 
-    ExcelWriter.wrtie(ws, table, (0, 0))
+    ExcelWriter.write(ws, table, (0, 0))
 
     wb.save('2.xlsx')
 
@@ -644,6 +636,6 @@ def test_write_non_ascii_chracter_into_excel_with_style():
     ws.title = '报表'
     ws.sheet_properties.tabColor = "1072BA"
 
-    ExcelWriter.wrtie(ws, table, (0, 0))
+    ExcelWriter.write(ws, table, (0, 0))
 
     wb.save('3.xlsx')
