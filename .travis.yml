@@ -1,0 +1,34 @@
+language: python
+cache:
+  directories:
+    - "$HOME/.cache/pip"
+    - "$HOME/.pyenv"
+matrix:
+  include:
+    - os: linux
+      dist: trusty
+      sudo: false
+      python: '2.7'
+    - os: linux
+      dist: trusty
+      sudo: false
+      python: '3.3'
+    - os: linux
+      sudo: false
+      python: pypy
+    - os: linux
+      sudo: false
+      python: pypy3
+  allow_failures:
+    - python: '3.3'
+    - python: pypy
+    - python: pypy3
+  fast_finish: true
+install:
+  - pip install -r requirements.txt
+  - pip install coveralls
+script: py.test tests.py -v --cov tablereport --cov-report term-missing
+after_success:
+  - coveralls
+notifications:
+  email: never
