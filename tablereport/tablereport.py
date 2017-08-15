@@ -145,8 +145,50 @@ class Area(object):
 
 
 class Table(object):
-    def __init__(self, header=None, body=None, style=None):
+    """
+    Table is the core class of TableReport.
+     
+    A table looks like a nested list. Each inner list represents a row of the 
+    table, and each row contains some cells::
 
+        [
+            [Cell('header1'), Cell('header2')],
+            [Cell(1), Cell(2)],
+            [Cell(3), Cell(4)]
+        ]
+    
+    We can create this by the following ways, and each element in a row will be 
+    auto wrapped into a cell::
+        
+        table = Table(
+            header=[['header1', 'header2']],
+            body=[[1, 2], [3, 4]]
+        )
+
+    All Cells in a table has a style attribute, the default value of which can 
+    be set by ``Style`` argument, and we can also separately set the style 
+    attribute of a cell as below::
+    
+        table = Table(
+            header=[[('header1',style), 'header2']],
+            body=[[1, 2], [3, 4]]
+        )
+    
+    An import thing is  that ``None`` in a row will be specially handled. 
+    ``None`` will be used to auto merge cells. A sample could explain this::
+    
+        table = Table(header=[['test', None], ['header1', 'header2']],
+                      body=[[1, 2], ])
+                      
+    This will create a table as below. This feature is usually used for custom 
+    table header::
+
+        [[Cell('test', width=2), None],
+        [Cell('header1'), Cell('header2')],
+        [Cell(1), Cell(2)]]
+    """
+
+    def __init__(self, header=None, body=None, style=None):
         if header is None:
             header = []
 
