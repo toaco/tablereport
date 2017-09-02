@@ -1,14 +1,4 @@
-Example
-=======
-
-Basic
------
-
-.. figure:: images/basic.png
-   :alt:
-
-.. code:: python
-
+def basic():
     from tablereport import Table
     from tablereport.shortcut import write_to_excel
 
@@ -19,14 +9,8 @@ Basic
 
     write_to_excel('basic.xlsx', table)
 
-Style
------
 
-.. figure:: images/style.png
-   :alt:
-
-.. code:: python
-
+def style():
     from tablereport import Table, Style
     from tablereport.shortcut import write_to_excel
 
@@ -53,14 +37,8 @@ Style
 
     write_to_excel('style.xlsx', table)
 
-Column Selector
----------------
 
-.. figure:: images/column_selector.png
-   :alt:
-
-.. code:: python
-
+def column_selector():
     from tablereport import Table, ColumnSelector, Style
     from tablereport.shortcut import write_to_excel
 
@@ -76,14 +54,8 @@ Column Selector
     areas.set_style(style)
     write_to_excel('column_selector.xlsx', table)
 
-Merge
------
 
-.. figure:: images/merge.png
-   :alt:
-
-.. code:: python
-
+def merge():
     from tablereport import Table, ColumnSelector
     from tablereport.shortcut import write_to_excel
 
@@ -96,14 +68,8 @@ Merge
     column.merge()
     write_to_excel('merge.xlsx', table)
 
-Group
------
 
-.. figure:: images/group.png
-   :alt:
-
-.. code:: python
-
+def group():
     from tablereport import Table, ColumnSelector
     from tablereport.shortcut import write_to_excel
 
@@ -118,14 +84,8 @@ Group
     column.group().merge()
     write_to_excel('group.xlsx', table)
 
-Summary
--------
 
-.. figure:: images/summary.png
-   :alt:
-
-.. code:: python
-
+def summary():
     from tablereport import Table, Style
     from tablereport.shortcut import write_to_excel
 
@@ -141,14 +101,8 @@ Summary
                        value_style=style)
     write_to_excel('summary.xlsx', table)
 
-Complex
--------
 
-.. figure:: images/complex.png
-   :alt:
-
-.. code:: python
-
+def complex():
     from tablereport import Table, ColumnSelector, Style
     from tablereport.shortcut import write_to_excel
 
@@ -191,3 +145,13 @@ Complex
                   value_style=bottom_total_style)
 
     write_to_excel('complex.xlsx', table)
+
+
+if __name__ == '__main__':
+    basic()
+    style()
+    column_selector()
+    merge()
+    group()
+    summary()
+    complex()
