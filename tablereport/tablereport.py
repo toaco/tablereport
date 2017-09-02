@@ -38,6 +38,10 @@ class Areas(list):
         for area in self:
             area.summary(label, label_span, location, label_style, value_style)
 
+    def set_style(self, style):
+        for area in self:
+            area.set_style(style)
+
     def one(self):
         """assert Areas contain only one Area and return it"""
         assert len(self) == 1
@@ -179,6 +183,8 @@ class Area(object):
             appended_row[self._y] = Cell(text, width=label_span)
             if label_style is not None:
                 appended_row[self._y].style = label_style
+            else:
+                appended_row[self._y].style = self.table.style
 
         # add summarized cells
         for col_num in range(self._y + label_span,
@@ -257,6 +263,9 @@ class Table(object):
 
         if body is None:
             body = []
+
+        if style is None:
+            style = _default_style
 
         self._header_data = header
         self._body_data = body
@@ -366,6 +375,8 @@ class Cell(object):
         self.value = value
         self.width = width
         self.height = height
+        if style is None:
+            style = _default_style
         self.style = style
 
     def __eq__(self, other):
@@ -415,7 +426,17 @@ class Style(object):
 
         if extend is not None:
             assert isinstance(extend, dict)
-            extend = extend.copy()
-            extend.update(dict_1)
-            return extend
-        return dict_1
+        else:
+            extend = {
+                'font_size': 12,
+                'height': 'auto',
+                'width': 'auto',
+                'horizontal_align': 'center',
+                'vertical_align': 'center',
+            }
+        extend = extend.copy()
+        extend.update(dict_1)
+        return extend
+
+
+_default_style = Style()

@@ -449,25 +449,24 @@ def test_set_style_of_headers_by_method():
 
 
 def test_set_merged_areas_style():
-    style = {}
+    style = {'foo': 'bar'}
     table = Table(header=[['header1', 'header2', 'header3']],
                   body=[[1, 2, 3], [1, 2, 4], [1, 3, 5], [2, 3, 4], [2, 4, 5]])
     areas = table.body.select(ColumnSelector(lambda col: col == 1))
     areas.group().merge(style=style)
 
-    assert id(table[1][0].style) == id(style)
-    assert id(table[4][0].style) == id(style)
-    assert table[0][0].style is None
+    assert table[1][0].style == style
+    assert table[4][0].style == style
 
 
 def test_set_summary_style():
     table = Table(header=[['header1', 'header2', 'header3']],
                   body=[[1, 2, 3], [1, 2, 4], [1, 3, 5], [2, 3, 4], [2, 4, 5]])
 
-    label_style = Style()
-    value_style = Style()
-    label_style2 = Style()
-    value_style2 = Style()
+    label_style = {'foo1': 'bar'}
+    value_style = {'foo2': 'bar'}
+    label_style2 = {'foo3': 'bar'}
+    value_style2 = {'foo4': 'bar'}
 
     areas = table.body.select(ColumnSelector(lambda col: col == 1))
     areas.group().merge().left.summary(label_span=1, label='total',
@@ -484,12 +483,11 @@ def test_set_summary_style():
                           [2, 3, 4], [None, 4, 5], [None, 'total', 9],
                           ['total', None, 21]]
 
-    assert id(table[4][1].style) == id(label_style)
-    assert id(table[4][2].style) == id(value_style)
-    assert id(table[7][1].style) == id(label_style)
-    assert id(table[8][0].style) == id(label_style2)
-    assert id(table[8][2].style) == id(value_style2)
-    assert table[0][0].style is None
+    assert table[4][1].style == label_style
+    assert table[4][2].style == value_style
+    assert table[7][1].style == label_style
+    assert table[8][0].style == label_style2
+    assert table[8][2].style == value_style2
 
 
 def test_excel_writer():
