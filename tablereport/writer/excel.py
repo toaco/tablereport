@@ -98,10 +98,10 @@ class WorkSheetWriter(object):
             if value is None:
                 pass
             else:
-                worksheet.row_dimensions[i + 1].height = value
+                worksheet.row_dimensions[position[0] + i + 1].height = value
         for i, value in enumerate(col_width):
             if value is None:
                 pass
             else:
-                column_letter = get_column_letter(i + 1)
+                column_letter = get_column_letter(position[1] + i + 1)
                 worksheet.column_dimensions[column_letter].width = value
