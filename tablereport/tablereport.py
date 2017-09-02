@@ -9,25 +9,34 @@ class Areas(list):
             areas = []
         super(Areas, self).__init__(areas)
 
+    @property
+    def left(self):
+        areas = Areas()
+        for area in self:
+            areas.append(area.left)
+
+        return areas
+
     def group(self):
-        areas = []
+        areas = Areas()
         for area in self:
             areas.extend(area.group())
 
-        self.clear()
-        self.extend(areas)
-
-        return self
+        return areas
 
     def merge(self, style=None):
+        areas = Areas()
         for area in self:
             area.merge(style)
+            areas.append(area)
 
-    def add_summary(self, text_span, text, location, label_style=None,
-                    value_style=None):
+        return areas
+
+    def summary(self, label=None, label_span=0, location='bottom',
+                label_style=None,
+                value_style=None):
         for area in self:
-            area.add_summary(text_span, text, location, label_style,
-                             value_style)
+            area.summary(label, label_span, location, label_style, value_style)
 
     def one(self):
         """assert Areas contain only one Area and return it"""
@@ -63,6 +72,15 @@ class Area(object):
             row = Row(self.table, position, self.width)
             rows.append(row)
         return rows
+
+    @property
+    def left(self):
+        """left side area"""
+        x, y = self.position
+        position = x, y + self.width
+        width = self.table.width - self.width - 1
+        area = Area(self.table, width, self.height, position, style=None)
+        return area
 
     def select(self, selector):
         # select an area in self
@@ -108,21 +126,17 @@ class Area(object):
 
         self.data[0][0] = cell
 
-    def add_summary(self, text_span, text, location, label_style=None,
-                    value_style=None):
-        if location == 'left':
-            cell = self.data[0][0]
-            cell.height += 1
-            new_col_num = self._add_row_at_bottom(
-                label_style, text, text_span, value_style, self.width)
-        elif location == 'bottom':
-            new_col_num = self._add_row_at_bottom(
-                label_style, text, text_span, value_style, offset=0)
-        else:
-            raise ValueError
-        self._update_existed_areas(new_col_num)
+    def summary(self, label=None, label_span=0, location='bottom',
+                label_style=None,
+                value_style=None):
+        if location == 'bottom':
+            new_col_num = self._add_row_at_bottom(label_style, label,
+                                                  label_span, value_style)
 
-        self.table.height += 1
+            self._update_existed_areas(new_col_num)
+            self.table.height += 1
+        else:
+            raise NotImplemented
 
     def set_style(self, style):
         for row in self.data:
@@ -131,31 +145,43 @@ class Area(object):
                     cell.style = style
 
     def _update_existed_areas(self, new_col_num):
+        self_y = self.position[1]
+        self_width = self.width
         for area in self.table.areas:
             x, y = area.position
             if new_col_num > x + area.height:
                 continue
             elif x + area.height >= new_col_num > x:
+                # handle merged cell
+                cell = area[0][0]
+                if cell.width == area.width and cell.height == area.height:
+                    # todo
+                    if self_y <= y + area.width - 1 \
+                            and self_y + self_width - 1 >= y:
+                        pass
+                    else:
+                        cell.height += 1
+
                 area.height += 1
+
             else:
                 x += 1
                 area.position = x, y
 
-    def _add_row_at_bottom(self, label_style, text, text_span, value_style,
-                           offset=0):
+    def _add_row_at_bottom(self, label_style, text, label_span, value_style):
         new_col_num = self._x + self.height
         self.table.data.insert(new_col_num,
                                [None] * self.table.width)
         appended_row = self.table[new_col_num]
 
-        # set summary cell
-        if text_span != 0:
-            appended_row[self._y + offset] = Cell(text, width=text_span)
+        # add label cell
+        if label_span != 0:
+            appended_row[self._y] = Cell(text, width=label_span)
             if label_style is not None:
-                appended_row[self._y + offset].style = label_style
+                appended_row[self._y].style = label_style
 
-        # summarize columns need to be summarized
-        for col_num in range(self._y + offset + text_span,
+        # add summarized cells
+        for col_num in range(self._y + label_span,
                              self.table.width):
             total = 0
             for row_num in range(self._x, self._x + self.height):
@@ -282,10 +308,9 @@ class Table(object):
         areas = selector.select(table)
         return areas
 
-    def add_summary(self, text_span, text, location, label_style=None,
-                    value_style=None):
-        self.body.add_summary(text_span, text, location, label_style,
-                              value_style)
+    def summary(self, label, label_span, location='bottom', label_style=None,
+                value_style=None):
+        self.body.summary(label, label_span, location, label_style, value_style)
 
     @staticmethod
     def _auto_merge(data, row_num, col_num):
@@ -352,8 +377,7 @@ class Cell(object):
 
     def __repr__(self):
         return ('Cell(value="{}", style={}, width={}, height={})'
-                .format(repr(self.value), self.style, self.width, self.height)
-                .encode('utf-8'))
+                .format(repr(self.value), self.style, self.width, self.height))
 
     __str__ = __repr__
 
