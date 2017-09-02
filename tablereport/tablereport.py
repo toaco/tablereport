@@ -9,6 +9,16 @@ class Areas(list):
             areas = []
         super(Areas, self).__init__(areas)
 
+    def group(self):
+        areas = []
+        for area in self:
+            areas.extend(area.group())
+
+        self.clear()
+        self.extend(areas)
+
+        return self
+
     def merge(self, style=None):
         for area in self:
             area.merge(style)
@@ -58,6 +68,33 @@ class Area(object):
         # select an area in self
         area = selector.select(self)
         return area
+
+    def group(self):
+        """group a area, now only support group a col"""
+        if not self.width == 1:
+            return
+
+        start_index = 0
+        start_value = self.data[0][0]
+        start_x, start_y = self.position
+
+        areas = Areas()
+        for row_num in range(1, len(self.data)):
+            if self.data[row_num][0] == start_value:
+                continue
+            else:
+                area = Area(table=self.table, width=1,
+                            height=row_num - start_index,
+                            position=(start_x + start_index, start_y))
+                start_value = self.data[row_num][0]
+                start_index = row_num
+                areas.append(area)
+        else:
+            sub_area = Area(table=self.table, width=1,
+                            height=len(self.data) - start_index,
+                            position=(start_x + start_index, start_y))
+            areas.append(sub_area)
+        return areas
 
     def merge(self, style=None):
         cell = self.data[0][0]
@@ -322,39 +359,22 @@ class Cell(object):
 
 
 class ColumnSelector:
-    def __init__(self, column, group):
-        self.column = column
-        self.group = group
+    def __init__(self, func):
+        """
+        :param func: eg: ``lambda col:col==1``
+        """
+        self.func = func
 
     def select(self, area):
-        assert self.column <= area.width
         x, y = area.position
-
-        y += self.column - 1
-        area = Area(table=area.table, width=1, height=area.height,
-                    position=(x, y))
+        width = area.width
 
         areas = Areas()
-        if not self.group:
-            areas.append(area)
-        else:
-            start_value = area.data[0][0]
-            start_index = 0
-            for row_num in range(1, len(area.data)):
-                if area.data[row_num][0] == start_value:
-                    continue
-                else:
-                    sub_area = Area(table=area.table, width=1,
-                                    height=row_num - start_index,
-                                    position=(x + start_index, y))
-                    start_value = area.data[row_num][0]
-                    start_index = row_num
-                    areas.append(sub_area)
-            else:
-                sub_area = Area(table=area.table, width=1,
-                                height=len(area.data) - start_index,
-                                position=(x + start_index, y))
-                areas.append(sub_area)
+        for col in range(width):
+            if self.func(col + 1):
+                area = Area(table=area.table, width=1, height=area.height,
+                            position=(x, y + col))
+                areas.append(area)
         return areas
 
 
