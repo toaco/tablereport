@@ -638,3 +638,23 @@ def test_write_non_ascii_chracter_into_excel_with_style():
     WorkSheetWriter.write(ws, table, (0, 0))
 
     wb.save('3.xlsx')
+
+
+# def test_row_selector():
+#     table = Table(header=[['header1', 'header2', 'header3']],
+#                   body=[[1, 2, 3], [1, 2, 4], [1, 3, 5], [2, 3, 4]])
+#
+#     even_row_style = Style({
+#         'background_color': 'FFF0F0F0',
+#     })
+#     odd_row_style = Style({
+#         'background_color': 'FF87CEFA',
+#     })
+#
+#     even_rows = table.body.select(RowSelector(lambda line: not line % 2))
+#     odd_rows = table.body.select(RowSelector(lambda line: line % 2))
+#
+#     even_rows.set_style(even_row_style)
+#     odd_rows.set_style(odd_row_style)
+#
+#     write_to_excel('4.xlsx', table)
