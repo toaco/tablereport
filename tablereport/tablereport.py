@@ -393,7 +393,7 @@ class Cell(object):
     __str__ = __repr__
 
 
-class ColumnSelector:
+class ColumnSelector(object):
     def __init__(self, func):
         """
         :param func: eg: ``lambda col:col==1``
@@ -409,6 +409,26 @@ class ColumnSelector:
             if self.func(col + 1):
                 area = Area(table=area.table, width=1, height=area.height,
                             position=(x, y + col))
+                areas.append(area)
+        return areas
+
+
+class RowSelector(object):
+    def __init__(self, func):
+        """
+        :param func: eg: ``lambda row:row==1``
+        """
+        self.func = func
+
+    def select(self, area):
+        x, y = area.position
+        height = area.height
+
+        areas = Areas()
+        for row in range(height):
+            if self.func(row + 1):
+                area = Area(table=area.table, width=area.width, height=1,
+                            position=(x + row, y))
                 areas.append(area)
         return areas
 

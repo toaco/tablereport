@@ -58,6 +58,36 @@ def test_column_selector_select_right_area_of_table():
     assert area.position == (1, 1)
 
 
+def test_row_selector_select_right_area_of_area():
+    table = Table(body=[[1, 2, 3, ], [4, 5, 6], [7, 8, 9]])
+    area = Area(table, 3, 3, (0, 0))
+    sub_area = area.select(RowSelector(lambda row: row == 2)).one()
+
+    assert sub_area.height == 1
+    assert sub_area.width == 3
+    assert sub_area.position == (1, 0)
+
+
+def test_row_selector_select_right_area_of_area_2():
+    table = Table(body=[[1, 2, 3, ], [4, 5, 6], [7, 8, 9]])
+    area = Area(table, 3, 3, (0, 0))
+    areas = area.select(RowSelector(lambda row: row % 2))
+
+    assert len(areas) == 2
+    assert areas[0].position == (0, 0)
+    assert areas[1].position == (2, 0)
+
+
+def test_row_selector_select_right_area_of_table():
+    table = Table(header=[['header1', 'header2', 'header3']],
+                  body=[[1, 2, 3], [4, 5, 6], [7, 8, 9]])
+    area = table.body.select(RowSelector(lambda row: row == 2)).one()
+
+    assert area.height == 1
+    assert area.width == 3
+    assert area.position == (2, 0)
+
+
 def test_values_in_area_of_table_selected_by_column_selector():
     table = Table(header=[['header1', 'header2', 'header3']],
                   body=[[1, 2, 3], [4, 5, 6], [7, 8, 9]])
@@ -638,23 +668,3 @@ def test_write_non_ascii_chracter_into_excel_with_style():
     WorkSheetWriter.write(ws, table, (0, 0))
 
     wb.save('3.xlsx')
-
-
-# def test_row_selector():
-#     table = Table(header=[['header1', 'header2', 'header3']],
-#                   body=[[1, 2, 3], [1, 2, 4], [1, 3, 5], [2, 3, 4]])
-#
-#     even_row_style = Style({
-#         'background_color': 'FFF0F0F0',
-#     })
-#     odd_row_style = Style({
-#         'background_color': 'FF87CEFA',
-#     })
-#
-#     even_rows = table.body.select(RowSelector(lambda line: not line % 2))
-#     odd_rows = table.body.select(RowSelector(lambda line: line % 2))
-#
-#     even_rows.set_style(even_row_style)
-#     odd_rows.set_style(odd_row_style)
-#
-#     write_to_excel('4.xlsx', table)

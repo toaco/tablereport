@@ -55,6 +55,29 @@ def column_selector():
     write_to_excel('column_selector.xlsx', table)
 
 
+def row_selector():
+    from tablereport import Table, RowSelector, Style
+    from tablereport.shortcut import write_to_excel
+
+    header_style = Style({
+        'background_color': 'FF87CEFA',
+    })
+    even_row_style = Style({
+        'background_color': 'FFF0F0F0',
+    })
+
+    table = Table(header=[['HEADER1', 'HEADER2', 'HEADER3', 'HEADER4']],
+                  body=[['One', 'A', 1, 2],
+                        ['One', 'A', 2, 3],
+                        ['One', 'B', 3, 4],
+                        ['One', 'B', 1, 2], ])
+
+    table.header.set_style(header_style)
+    rows = table.body.select(RowSelector(lambda line: not line % 2))
+    rows.set_style(even_row_style)
+    write_to_excel('row_selector.xlsx', table)
+
+
 def merge():
     from tablereport import Table, ColumnSelector
     from tablereport.shortcut import write_to_excel
@@ -151,6 +174,7 @@ if __name__ == '__main__':
     basic()
     style()
     column_selector()
+    row_selector()
     merge()
     group()
     summary()
