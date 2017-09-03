@@ -80,6 +80,61 @@ areas.set_style(style)
 write_to_excel('column_selector.xlsx', table)
 ```
 
+### Row Selector
+
+![](docs/images/row_selector.png)
+
+```python
+from tablereport import Table, RowSelector, Style
+from tablereport.shortcut import write_to_excel
+
+header_style = Style({
+    'background_color': 'FF87CEFA',
+})
+even_row_style = Style({
+    'background_color': 'FFF0F0F0',
+})
+
+table = Table(header=[['HEADER1', 'HEADER2', 'HEADER3', 'HEADER4']],
+              body=[['One', 'A', 1, 2],
+                    ['One', 'A', 2, 3],
+                    ['One', 'B', 3, 4],
+                    ['One', 'B', 1, 2], ])
+
+table.header.set_style(header_style)
+rows = table.body.select(RowSelector(lambda line: not line % 2))
+rows.set_style(even_row_style)
+write_to_excel('row_selector.xlsx', table)
+```
+
+### Cell Selector
+
+![](docs/images/cell_selector.png)
+
+```python
+from tablereport import Table, Style, ColumnSelector, CellSelector
+from tablereport.shortcut import write_to_excel
+
+good_score_style = Style({
+    'background_color': 'ff00cc33',
+})
+bad_score_style = Style({
+    'background_color': 'ffcc0000',
+})
+
+table = Table(header=[['HEADER1', 'HEADER2', 'HEADER3', 'HEADER4']],
+              body=[['One', 'A', 90, 70],
+                    ['One', 'A', 50, 40],
+                    ['One', 'B', 93, 59],
+                    ['Two', 'A', 78, 23],
+                    ['Two', 'B', 28, 66]])
+area = table.body.select(ColumnSelector(lambda col: col == 3, width=2)).one()
+good_score_cells = area.select(CellSelector(lambda cell: cell.value >= 90))
+bad_score_cells = area.select(CellSelector(lambda cell: cell.value < 60))
+good_score_cells.set_style(good_score_style)
+bad_score_cells.set_style(bad_score_style)
+```
+
 ### Merge
 
 ![](docs/images/merge.png)

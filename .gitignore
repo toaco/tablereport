@@ -1,5 +1,7 @@
 .idea/
 source/
+*.xlsx
+*.xlsx#
 
 Makefile
 
