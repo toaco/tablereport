@@ -2,50 +2,165 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
+from .style import _default_style
 
-class Areas(list):
+
+class Table(object):
+    """
+    Table is the core class of TableReport.
+     
+    A table looks like a nested list. Each inner list represents a row of the 
+    table, and each row contains some cells::
+
+        [
+            [Cell('header1'), Cell('header2')],
+            [Cell(1), Cell(2)],
+            [Cell(3), Cell(4)]
+        ]
+    
+    We can create this by the following ways, and each element in a row will be 
+    auto wrapped into a cell::
+        
+        table = Table(
+            header=[['header1', 'header2']],
+            body=[[1, 2], [3, 4]]
+        )
+
+    All Cells in a table has a style attribute, the default value of which can 
+    be set by ``Style`` argument, and we can also separately set the style 
+    attribute of a cell as below::
+    
+        table = Table(
+            header=[[('header1',style), 'header2']],
+            body=[[1, 2], [3, 4]]
+        )
+    
+    An import thing is  that ``None`` in a row will be specially handled. 
+    ``None`` will be used to auto merge cells. A sample could explain this::
+    
+        table = Table(header=[['test', None], ['header1', 'header2']],
+                      body=[[1, 2], ])
+                      
+    This will create a table as below. This feature is usually used for custom 
+    table header::
+
+        [[Cell('test', width=2), None],
+        [Cell('header1'), Cell('header2')],
+        [Cell(1), Cell(2)]]
+    """
+
+    def __init__(self, header=None, body=None, style=None):
+        if header is None:
+            header = []
+
+        if body is None:
+            body = []
+
+        if style is None:
+            style = _default_style
+
+        self._header_data = header
+        self._body_data = body
+        self._data = self._header_data + self._body_data
+
+        for row_num in range(len(self._data)):
+            for col_num in range(len(self._data[0])):
+                cell = self._data[row_num][col_num]
+                if cell is not None:
+                    if isinstance(cell, tuple):
+                        self._data[row_num][col_num] = Cell(cell[0],
+                                                            style=cell[1])
+                    else:
+                        self._data[row_num][col_num] = Cell(
+                            self._data[row_num][col_num],
+                            style=style)
+                    self._auto_merge(self._data, row_num, col_num)
+        self.areas = []
+        self.total_row_nums = set()
+        try:
+            width = len(self._data[0])
+        except IndexError:
+            width = 0
+
+        self.width = width
+        self.height = len(self._data)
+        self.style = style
+        self.header = Area(table=self, width=self.width,
+                           height=len(self._header_data),
+                           position=(0, 0))
+        self.body = Area(table=self, width=self.width,
+                         height=len(self._body_data),
+                         position=(len(self._header_data), 0))
+
+    @property
+    def data(self):
+        return self._data
+
+    def __getitem__(self, item):
+        return self._data[item]
+
+    def __setitem__(self, key, value):
+        self._data[key] = value
+
+    def select(self, selector):
+        # select an area in self
+        table = Area(table=self, width=self.width, height=self.height,
+                     position=(0, 0))
+        areas = selector.select(table)
+        return areas
+
+    def summary(self, label, label_span, location='bottom', label_style=None,
+                value_style=None):
+        self.body.summary(label, label_span, location, label_style, value_style)
+
+    @staticmethod
+    def _auto_merge(data, row_num, col_num):
+        # todo: range judge
+        for i in range(row_num + 1, len(data)):
+            if data[i][col_num] is None:
+                data[row_num][col_num].height += 1
+            else:
+                break
+
+        for j in range(col_num + 1, len(data[0])):
+            if data[row_num][j] is None:
+                data[row_num][col_num].width += 1
+            else:
+                break
+
+
+class Cell(object):
+    def __init__(self, value, style=None, width=1, height=1):
+        self.value = value
+        self.width = width
+        self.height = height
+        if style is None:
+            style = _default_style
+        self.style = style
+
+    def __eq__(self, other):
+        if type(other) == Cell:
+            return self.__dict__ == other.__dict__
+        else:
+            assert type(self.value) == type(other)
+            return self.value == other
+
+    def __repr__(self):
+        return ('Cell(value="{}", style={}, width={}, height={})'
+                .format(repr(self.value), self.style, self.width, self.height))
+
+    __str__ = __repr__
+
+
+class Cells(list):
     def __init__(self, areas=None):
         if areas is None:
             areas = []
-        super(Areas, self).__init__(areas)
-
-    @property
-    def left(self):
-        areas = Areas()
-        for area in self:
-            areas.append(area.left)
-
-        return areas
-
-    def group(self):
-        areas = Areas()
-        for area in self:
-            areas.extend(area.group())
-
-        return areas
-
-    def merge(self, style=None):
-        areas = Areas()
-        for area in self:
-            area.merge(style)
-            areas.append(area)
-
-        return areas
-
-    def summary(self, label=None, label_span=0, location='bottom',
-                label_style=None,
-                value_style=None):
-        for area in self:
-            area.summary(label, label_span, location, label_style, value_style)
+        super(Cells, self).__init__(areas)
 
     def set_style(self, style):
-        for area in self:
-            area.set_style(style)
-
-    def one(self):
-        """assert Areas contain only one Area and return it"""
-        assert len(self) == 1
-        return self[0]
+        for cell in self:
+            cell.style = style
 
 
 class Area(object):
@@ -247,128 +362,49 @@ class Area(object):
         self.table.data[key + self._x] = value
 
 
-class Table(object):
-    """
-    Table is the core class of TableReport.
-     
-    A table looks like a nested list. Each inner list represents a row of the 
-    table, and each row contains some cells::
-
-        [
-            [Cell('header1'), Cell('header2')],
-            [Cell(1), Cell(2)],
-            [Cell(3), Cell(4)]
-        ]
-    
-    We can create this by the following ways, and each element in a row will be 
-    auto wrapped into a cell::
-        
-        table = Table(
-            header=[['header1', 'header2']],
-            body=[[1, 2], [3, 4]]
-        )
-
-    All Cells in a table has a style attribute, the default value of which can 
-    be set by ``Style`` argument, and we can also separately set the style 
-    attribute of a cell as below::
-    
-        table = Table(
-            header=[[('header1',style), 'header2']],
-            body=[[1, 2], [3, 4]]
-        )
-    
-    An import thing is  that ``None`` in a row will be specially handled. 
-    ``None`` will be used to auto merge cells. A sample could explain this::
-    
-        table = Table(header=[['test', None], ['header1', 'header2']],
-                      body=[[1, 2], ])
-                      
-    This will create a table as below. This feature is usually used for custom 
-    table header::
-
-        [[Cell('test', width=2), None],
-        [Cell('header1'), Cell('header2')],
-        [Cell(1), Cell(2)]]
-    """
-
-    def __init__(self, header=None, body=None, style=None):
-        if header is None:
-            header = []
-
-        if body is None:
-            body = []
-
-        if style is None:
-            style = _default_style
-
-        self._header_data = header
-        self._body_data = body
-        self._data = self._header_data + self._body_data
-
-        for row_num in range(len(self._data)):
-            for col_num in range(len(self._data[0])):
-                cell = self._data[row_num][col_num]
-                if cell is not None:
-                    if isinstance(cell, tuple):
-                        self._data[row_num][col_num] = Cell(cell[0],
-                                                            style=cell[1])
-                    else:
-                        self._data[row_num][col_num] = Cell(
-                            self._data[row_num][col_num],
-                            style=style)
-                    self._auto_merge(self._data, row_num, col_num)
-        self.areas = []
-        self.total_row_nums = set()
-        try:
-            width = len(self._data[0])
-        except IndexError:
-            width = 0
-
-        self.width = width
-        self.height = len(self._data)
-        self.style = style
-        self.header = Area(table=self, width=self.width,
-                           height=len(self._header_data),
-                           position=(0, 0))
-        self.body = Area(table=self, width=self.width,
-                         height=len(self._body_data),
-                         position=(len(self._header_data), 0))
+class Areas(list):
+    def __init__(self, areas=None):
+        if areas is None:
+            areas = []
+        super(Areas, self).__init__(areas)
 
     @property
-    def data(self):
-        return self._data
+    def left(self):
+        areas = Areas()
+        for area in self:
+            areas.append(area.left)
 
-    def __getitem__(self, item):
-        return self._data[item]
-
-    def __setitem__(self, key, value):
-        self._data[key] = value
-
-    def select(self, selector):
-        # select an area in self
-        table = Area(table=self, width=self.width, height=self.height,
-                     position=(0, 0))
-        areas = selector.select(table)
         return areas
 
-    def summary(self, label, label_span, location='bottom', label_style=None,
+    def group(self):
+        areas = Areas()
+        for area in self:
+            areas.extend(area.group())
+
+        return areas
+
+    def merge(self, style=None):
+        areas = Areas()
+        for area in self:
+            area.merge(style)
+            areas.append(area)
+
+        return areas
+
+    def summary(self, label=None, label_span=0, location='bottom',
+                label_style=None,
                 value_style=None):
-        self.body.summary(label, label_span, location, label_style, value_style)
+        for area in self:
+            area.summary(label, label_span, location, label_style, value_style)
 
-    @staticmethod
-    def _auto_merge(data, row_num, col_num):
-        # todo: range judge
-        for i in range(row_num + 1, len(data)):
-            if data[i][col_num] is None:
-                data[row_num][col_num].height += 1
-            else:
-                break
+    def set_style(self, style):
+        for area in self:
+            area.set_style(style)
 
-        for j in range(col_num + 1, len(data[0])):
-            if data[row_num][j] is None:
-                data[row_num][col_num].width += 1
-            else:
-                break
+    def one(self):
+        """assert Areas contain only one Area and return it"""
+        assert len(self) == 1
+        return self[0]
 
 
 class Row(object):
@@ -435,124 +471,3 @@ class Column(object):
         for cell in self:
             if cell:
                 cell.style = style
-
-
-class Cell(object):
-    def __init__(self, value, style=None, width=1, height=1):
-        self.value = value
-        self.width = width
-        self.height = height
-        if style is None:
-            style = _default_style
-        self.style = style
-
-    def __eq__(self, other):
-        if type(other) == Cell:
-            return self.__dict__ == other.__dict__
-        else:
-            assert type(self.value) == type(other)
-            return self.value == other
-
-    def __repr__(self):
-        return ('Cell(value="{}", style={}, width={}, height={})'
-                .format(repr(self.value), self.style, self.width, self.height))
-
-    __str__ = __repr__
-
-
-class Cells(list):
-    def __init__(self, areas=None):
-        if areas is None:
-            areas = []
-        super(Cells, self).__init__(areas)
-
-    def set_style(self, style):
-        for cell in self:
-            cell.style = style
-
-
-class ColumnSelector(object):
-    def __init__(self, func, width=1):
-        """
-        :param func: eg: ``lambda col:col==1``
-        """
-        self.func = func
-        self.width = width
-
-    def select(self, area):
-        x, y = area.position
-        width = area.width
-
-        areas = Areas()
-        for col in range(width):
-            if self.func(col + 1):
-                area = Area(table=area.table, width=self.width,
-                            height=area.height,
-                            position=(x, y + col))
-                areas.append(area)
-        return areas
-
-
-class RowSelector(object):
-    def __init__(self, func, height=1):
-        """
-        :param func: eg: ``lambda row:row==1``
-        """
-        self.func = func
-        self.height = height
-
-    def select(self, area):
-        x, y = area.position
-        height = area.height
-
-        areas = Areas()
-        for row in range(height):
-            if self.func(row + 1):
-                area = Area(table=area.table, width=area.width,
-                            height=self.height,
-                            position=(x + row, y))
-                areas.append(area)
-        return areas
-
-
-class CellSelector(object):
-    def __init__(self, func):
-        self.func = func
-
-    def select(self, area):
-        cells = Cells()
-        for row in area.data:
-            for cell in row:
-                if self.func(cell):
-                    cells.append(cell)
-
-        return cells
-
-
-class Style(object):
-    """
-    Style and style check is here
-    """
-
-    def __new__(cls, dict_1=None, extend=None):
-        if dict_1 is None:
-            dict_1 = {}
-        else:
-            assert isinstance(dict_1, dict)
-
-        if extend is not None:
-            assert isinstance(extend, dict)
-        else:
-            extend = {
-                'font_size': 12,
-                'height': 'auto',
-                'width': 'auto',
-                'horizontal_align': 'center',
-                'vertical_align': 'center',
-            }
-        extend = extend.copy()
-        extend.update(dict_1)
-        return extend
-
-
-_default_style = Style()
