@@ -394,11 +394,12 @@ class Cell(object):
 
 
 class ColumnSelector(object):
-    def __init__(self, func):
+    def __init__(self, func, width=1):
         """
         :param func: eg: ``lambda col:col==1``
         """
         self.func = func
+        self.width = width
 
     def select(self, area):
         x, y = area.position
@@ -407,18 +408,20 @@ class ColumnSelector(object):
         areas = Areas()
         for col in range(width):
             if self.func(col + 1):
-                area = Area(table=area.table, width=1, height=area.height,
+                area = Area(table=area.table, width=self.width,
+                            height=area.height,
                             position=(x, y + col))
                 areas.append(area)
         return areas
 
 
 class RowSelector(object):
-    def __init__(self, func):
+    def __init__(self, func, height=1):
         """
         :param func: eg: ``lambda row:row==1``
         """
         self.func = func
+        self.height = height
 
     def select(self, area):
         x, y = area.position
@@ -427,7 +430,8 @@ class RowSelector(object):
         areas = Areas()
         for row in range(height):
             if self.func(row + 1):
-                area = Area(table=area.table, width=area.width, height=1,
+                area = Area(table=area.table, width=area.width,
+                            height=self.height,
                             position=(x + row, y))
                 areas.append(area)
         return areas

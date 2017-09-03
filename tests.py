@@ -48,6 +48,16 @@ def test_column_selector_select_right_area_of_area_2():
     assert areas[1].position == (0, 2)
 
 
+def test_column_selector_select_right_area_of_area_3():
+    table = Table(body=[[1, 2, 3, ], [4, 5, 6], [7, 8, 9]])
+    area = Area(table, 3, 3, (0, 0))
+    sub_area = area.select(ColumnSelector(lambda col: col == 2, width=2)).one()
+
+    assert sub_area.height == 3
+    assert sub_area.width == 2
+    assert sub_area.position == (0, 1)
+
+
 def test_column_selector_select_right_area_of_table():
     table = Table(header=[['header1', 'header2', 'header3']],
                   body=[[1, 2, 3], [4, 5, 6], [7, 8, 9]])
