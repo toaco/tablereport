@@ -200,6 +200,40 @@ Summary
                        value_style=style)
     write_to_excel('summary.xlsx', table)
 
+Horizontal Summary
+------------------
+
+.. figure:: images/horizontal_summary.png
+   :alt: 
+
+.. code:: python
+
+    from tablereport import Table, Style, ColumnSelector
+    from tablereport.shortcut import write_to_excel
+
+    table = Table(header=[['HEADER1', 'HEADER2', 'HEADER3', 'HEADER4']],
+                  body=[['One', 'A', 1, 2],
+                        ['One', 'A', 2, 3],
+                        ['One', 'B', 3, 4],
+                        ['Two', 'A', 1, 2],
+                        ['Two', 'B', 2, 3]])
+
+    header_style = Style({
+        'background_color': 'ff87cefa',
+    })
+    summary_style = Style({
+        'background_color': 'ffe6e6e6',
+    })
+
+    areas = table.select(ColumnSelector(lambda col: col == 3, width=2))
+    summary_style = Style({
+        'background_color': 'ffe6e6e6',
+    })
+    areas.summary(label_span=1, label='TOTAL', location='right',
+                  value_style=summary_style, label_style=header_style)
+    table.header.set_style(header_style)
+    write_to_excel('horizontal_summary.xlsx', table)
+
 Complex
 -------
 

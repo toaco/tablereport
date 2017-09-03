@@ -134,11 +134,15 @@ class Area(object):
                 label_style=None,
                 value_style=None):
         if location == 'bottom':
-            new_col_num = self._add_row_at_bottom(label_style, label,
+            new_row_num = self._add_row_at_bottom(label_style, label,
                                                   label_span, value_style)
 
-            self._update_existed_areas(new_col_num)
+            self._update_existed_areas(new_row_num)
             self.table.height += 1
+        elif location == 'right':
+            self._add_col_at_right(label_style, label, label_span, value_style)
+            # todo: update existed areas
+            self.table.width += 1
         else:
             raise NotImplemented
 
@@ -148,14 +152,14 @@ class Area(object):
                 if cell:
                     cell.style = style
 
-    def _update_existed_areas(self, new_col_num):
+    def _update_existed_areas(self, new_row_num):
         self_y = self.position[1]
         self_width = self.width
         for area in self.table.areas:
             x, y = area.position
-            if new_col_num > x + area.height:
+            if new_row_num > x + area.height:
                 continue
-            elif x + area.height >= new_col_num > x:
+            elif x + area.height >= new_row_num > x:
                 # handle merged cell
                 cell = area[0][0]
                 if cell.width == area.width and cell.height == area.height:
@@ -173,10 +177,10 @@ class Area(object):
                 area.position = x, y
 
     def _add_row_at_bottom(self, label_style, text, label_span, value_style):
-        new_col_num = self._x + self.height
-        self.table.data.insert(new_col_num,
+        new_row_num = self._x + self.height
+        self.table.data.insert(new_row_num,
                                [None] * self.table.width)
-        appended_row = self.table[new_col_num]
+        appended_row = self.table[new_row_num]
 
         # add label cell
         if label_span != 0:
@@ -187,6 +191,7 @@ class Area(object):
                 appended_row[self._y].style = self.table.style
 
         # add summarized cells
+        # todo: not iterate to self.table.width
         for col_num in range(self._y + label_span,
                              self.table.width):
             total = 0
@@ -199,6 +204,35 @@ class Area(object):
                 appended_row[col_num].style = value_style
             else:
                 appended_row[col_num].style = self.table.style
+        self.table.total_row_nums.add(new_row_num)
+        return new_row_num
+
+    def _add_col_at_right(self, label_style, text, label_span, value_style):
+        new_col_num = self._y + self.width
+        for row in self.table.data:
+            row.insert(new_col_num, None)
+
+        appended_col = Column(table=self.table, position=(0, new_col_num),
+                              height=self.height)
+
+        # add label cell
+        if label_span != 0:
+            appended_col[self._x] = Cell(text, height=label_span)
+            if label_style is not None:
+                appended_col[self._x].style = label_style
+            else:
+                appended_col[self._x].style = self.table.style
+
+        # add summarized cells
+        for row_num in range(self._x + label_span, self._x + self.height):
+            total = 0
+            for col_num in range(self._y, self._y + self.width):
+                total += self.table[row_num][col_num].value
+            appended_col[row_num] = Cell(total)
+            if value_style is not None:
+                appended_col[row_num].style = value_style
+            else:
+                appended_col[row_num].style = self.table.style
         self.table.total_row_nums.add(new_col_num)
         return new_col_num
 
@@ -363,6 +397,39 @@ class Row(object):
 
     def __repr__(self):
         return str([self[i] for i in range(self.width)])
+
+    def set_style(self, style):
+        for cell in self:
+            if cell:
+                cell.style = style
+
+
+class Column(object):
+    def __init__(self, table, position, height):
+        self.table = table
+        self.x, self.y = position
+        self.height = height
+
+    def __getitem__(self, row):
+        assert row < self.height
+        return self.table[self.x + row][self.y]
+
+    def __setitem__(self, row, value):
+        assert row < self.height
+        self.table[self.x + row][self.y] = value
+
+    def __iter__(self):
+        for i in range(self.height):
+            yield self.table[self.x + i][self.y]
+
+    def __eq__(self, iterable):
+        return all(self[i] == iterable[i] for i in range(self.height))
+
+    def __len__(self):
+        return self.height
+
+    def __repr__(self):
+        return str([self[i] for i in range(self.height)])
 
     def set_style(self, style):
         for cell in self:

@@ -547,6 +547,26 @@ def test_cell_selector():
     assert area[4][1].style == {'foo': 'bar'}
 
 
+def test_add_horizontal_summary_will_modify_cell():
+    table = Table(body=[['One', 'A', 1, 2],
+                        ['One', 'A', 2, 3],
+                        ['One', 'B', 3, 4],
+                        ['Two', 'A', 1, 2],
+                        ['Two', 'B', 2, 3]])
+
+    area = table.body.select(
+        ColumnSelector(lambda col: col == 3, width=2)).one()
+    style = {'foo': 'bar'}
+    area.summary(label_span=0, location='right', value_style=style)
+
+    assert list(table) == [
+        [Cell('One'), Cell('A'), Cell(1), Cell(2), Cell(3, style=style)],
+        [Cell('One'), Cell('A'), Cell(2), Cell(3), Cell(5, style=style)],
+        [Cell('One'), Cell('B'), Cell(3), Cell(4), Cell(7, style=style)],
+        [Cell('Two'), Cell('A'), Cell(1), Cell(2), Cell(3, style=style)],
+        [Cell('Two'), Cell('B'), Cell(2), Cell(3), Cell(5, style=style)]]
+
+
 def test_excel_writer():
     table = Table(header=[['header1', 'header2', 'header3']],
                   body=[[1, 2, 3], [1, 2, 4], [1, 3, 5], [2, 3, 4], [2, 4, 5]])
