@@ -530,6 +530,23 @@ def test_set_summary_style():
     assert table[8][2].style == value_style2
 
 
+def test_cell_selector():
+    table = Table(header=[['HEADER1', 'HEADER2', 'HEADER3', 'HEADER4']],
+                  body=[['One', 'A', 1, -2],
+                        ['One', 'A', 2, 3],
+                        ['One', 'B', -3, 4],
+                        ['Two', 'A', 1, 2],
+                        ['Two', 'B', 2, -3]])
+    area = table.body.select(
+        ColumnSelector(lambda col: col == 3, width=2)).one()
+    cells = area.select(CellSelector(lambda cell: cell.value < 0))
+    cells.set_style({'foo': 'bar'})
+
+    assert area[0][1].style == {'foo': 'bar'}
+    assert area[2][0].style == {'foo': 'bar'}
+    assert area[4][1].style == {'foo': 'bar'}
+
+
 def test_excel_writer():
     table = Table(header=[['header1', 'header2', 'header3']],
                   body=[[1, 2, 3], [1, 2, 4], [1, 3, 5], [2, 3, 4], [2, 4, 5]])

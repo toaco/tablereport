@@ -78,6 +78,33 @@ def row_selector():
     write_to_excel('row_selector.xlsx', table)
 
 
+def cell_selector():
+    from tablereport import Table, Style, ColumnSelector, CellSelector
+    from tablereport.shortcut import write_to_excel
+
+    good_score_style = Style({
+        'background_color': 'ff00cc33',
+    })
+    bad_score_style = Style({
+        'background_color': 'ffcc0000',
+    })
+
+    table = Table(header=[['HEADER1', 'HEADER2', 'HEADER3', 'HEADER4']],
+                  body=[['One', 'A', 90, 70],
+                        ['One', 'A', 50, 40],
+                        ['One', 'B', 93, 59],
+                        ['Two', 'A', 78, 23],
+                        ['Two', 'B', 28, 66]])
+    area = table.body.select(
+        ColumnSelector(lambda col: col == 3, width=2)).one()
+    good_score_cells = area.select(CellSelector(lambda cell: cell.value >= 90))
+    bad_score_cells = area.select(CellSelector(lambda cell: cell.value < 60))
+    good_score_cells.set_style(good_score_style)
+    bad_score_cells.set_style(bad_score_style)
+
+    write_to_excel('cell_selector.xlsx', table)
+
+
 def merge():
     from tablereport import Table, ColumnSelector
     from tablereport.shortcut import write_to_excel
@@ -175,6 +202,7 @@ if __name__ == '__main__':
     style()
     column_selector()
     row_selector()
+    cell_selector()
     merge()
     group()
     summary()

@@ -393,6 +393,17 @@ class Cell(object):
     __str__ = __repr__
 
 
+class Cells(list):
+    def __init__(self, areas=None):
+        if areas is None:
+            areas = []
+        super(Cells, self).__init__(areas)
+
+    def set_style(self, style):
+        for cell in self:
+            cell.style = style
+
+
 class ColumnSelector(object):
     def __init__(self, func, width=1):
         """
@@ -435,6 +446,20 @@ class RowSelector(object):
                             position=(x + row, y))
                 areas.append(area)
         return areas
+
+
+class CellSelector(object):
+    def __init__(self, func):
+        self.func = func
+
+    def select(self, area):
+        cells = Cells()
+        for row in area.data:
+            for cell in row:
+                if self.func(cell):
+                    cells.append(cell)
+
+        return cells
 
 
 class Style(object):
