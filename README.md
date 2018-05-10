@@ -1,9 +1,9 @@
 # tablereport
 
 ![Python Version](https://img.shields.io/badge/python-2.7,3.4,3.5,3.6-blue.svg)
-[![Build Status](https://travis-ci.org/jefffffrey/tablereport.svg?branch=master)](https://travis-ci.org/jefffffrey/tablereport)
-[![Coverage Status](https://coveralls.io/repos/github/jefffffrey/tablereport/badge.svg?branch=master)](https://coveralls.io/github/jefffffrey/tablereport?branch=master)
-[![Code Health](https://landscape.io/github/jefffffrey/tablereport/master/landscape.svg?style=flat)](https://landscape.io/github/jefffffrey/tablereport/master)
+[![Build Status](https://travis-ci.org/toaco/tablereport.svg?branch=master)](https://travis-ci.org/toaco/tablereport)
+[![Coverage Status](https://coveralls.io/repos/github/toaco/tablereport/badge.svg?branch=master)](https://coveralls.io/github/toaco/tablereport?branch=master)
+[![Code Health](https://landscape.io/github/toaco/tablereport/master/landscape.svg?style=flat)](https://landscape.io/github/toaco/tablereport/master)
 
 A python library for making table report. Now supports exporting to Excel.
 
