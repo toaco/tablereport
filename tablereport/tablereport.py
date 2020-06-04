@@ -58,7 +58,7 @@ class Table(object):
 
         if style is None:
             style = _default_style
-
+        self._flag = []
         self._header_data = header
         self._body_data = body
         self._data = self._header_data + self._body_data
@@ -74,7 +74,7 @@ class Table(object):
                         self._data[row_num][col_num] = Cell(
                             self._data[row_num][col_num],
                             style=style)
-                    self._auto_merge(self._data, row_num, col_num)
+                    self._auto_merge(self._data, row_num, col_num, self._flag)
         self.areas = []
         self.total_row_nums = set()
         try:
@@ -114,16 +114,17 @@ class Table(object):
         self.body.summary(label, label_span, location, label_style, value_style)
 
     @staticmethod
-    def _auto_merge(data, row_num, col_num):
-        # todo: range judge
+    def _auto_merge(data, row_num, col_num, flag):
+
         for i in range(row_num + 1, len(data)):
             if data[i][col_num] is None:
                 data[row_num][col_num].height += 1
+                flag.append((i, col_num))
             else:
                 break
 
         for j in range(col_num + 1, len(data[0])):
-            if data[row_num][j] is None:
+            if data[row_num][j] is None and (row_num, j) not in flag:
                 data[row_num][col_num].width += 1
             else:
                 break
